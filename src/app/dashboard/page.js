@@ -1,55 +1,23 @@
+
 'use client'
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import AuthLayout from '@/components/AuthLayout'
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const [profile, setProfile] = useState(null)
-
-  useEffect(() => {
-    async function loadProfile() {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      setProfile(data)
-    }
-    loadProfile()
-  }, [router])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
-
-  if (!profile) return <p className="text-center mt-10">กำลังโหลด...</p>
-
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            ออกจากระบบ
-          </button>
+    <AuthLayout requiredRole="member">
+      <h1 className="text-2xl font-bold mb-4">สวัสดี สมาชิก</h1>
+      <p className="text-gray-600">ยินดีต้อนรับสู่ระบบวิเคราะห์เรซูเม่ด้วย AI</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h2 className="text-lg font-semibold mb-2">วิเคราะห์เรซูเม่</h2>
+          <p className="text-gray-500 text-sm">อัปโหลดเรซูเม่และเลือกตำแหน่งงานเพื่อรับคำแนะนำ</p>
         </div>
-        <p>สวัสดี <strong>{profile.username}</strong></p>
-        <p>อีเมล: {profile.email}</p>
-        <p>สถานะ: {profile.role}</p>
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <h2 className="text-lg font-semibold mb-2">ประวัติการวิเคราะห์</h2>
+          <p className="text-gray-500 text-sm">ดูผลวิเคราะห์ที่ผ่านมาทั้งหมด</p>
+        </div>
       </div>
-    </div>
+    </AuthLayout>
   )
 }
