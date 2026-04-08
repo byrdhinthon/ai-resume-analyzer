@@ -93,7 +93,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
       model: 'gpt-5.4-nano',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
-      max_tokens: 2000
+      max_completion_tokens: 2000
     })
 
     const responseText = completion.choices[0].message.content.trim()
