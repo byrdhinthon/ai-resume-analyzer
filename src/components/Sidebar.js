@@ -1,21 +1,23 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function Sidebar({ role }) {
   const pathname = usePathname()
+  const { t } = useLanguage()
 
   const memberLinks = [
-    { href: '/dashboard', label: 'หน้าหลัก' },
-    { href: '/dashboard/analyze', label: 'วิเคราะห์เรซูเม่' },
-    { href: '/dashboard/history', label: 'ประวัติการวิเคราะห์' },
+    { href: '/dashboard', label: t('sidebar.home') },
+    { href: '/dashboard/analyze', label: t('sidebar.analyze') },
+    { href: '/dashboard/history', label: t('sidebar.history') },
   ]
 
   const adminLinks = [
-    { href: '/admin', label: 'หน้าหลัก' },
-    { href: '/admin/users', label: 'จัดการผู้ใช้งาน' },
-    { href: '/admin/positions', label: 'จัดการตำแหน่งงาน' },
-    { href: '/admin/criteria', label: 'จัดการเกณฑ์ประเมิน' },
+    { href: '/admin', label: t('sidebar.home') },
+    { href: '/admin/users', label: t('sidebar.users') },
+    { href: '/admin/positions', label: t('sidebar.positions') },
+    { href: '/admin/criteria', label: t('sidebar.criteria') },
   ]
 
   const links = role === 'admin' ? adminLinks : memberLinks

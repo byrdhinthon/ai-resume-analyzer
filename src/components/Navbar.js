@@ -2,9 +2,11 @@
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function Navbar({ profile }) {
   const router = useRouter()
+  const { locale, toggleLanguage, t } = useLanguage()
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -15,10 +17,16 @@ export default function Navbar({ profile }) {
     <nav className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link href={profile?.role === 'admin' ? '/admin' : '/dashboard'} className="text-xl font-bold text-blue-600">
-          AI Resume Analyzer
+          {t('app.name')}
         </Link>
 
         <div className="flex items-center gap-4">
+          <button
+            onClick={toggleLanguage}
+            className="px-2 py-1 text-xs font-medium border rounded hover:bg-gray-50"
+          >
+            {t('nav.language')}
+          </button>
           <span className="text-sm text-gray-600">
             {profile?.username}
             <span className="ml-2 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
@@ -29,7 +37,7 @@ export default function Navbar({ profile }) {
             onClick={handleLogout}
             className="px-3 py-1.5 text-sm bg-red-500 text-white rounded hover:bg-red-600"
           >
-            ออกจากระบบ
+            {t('nav.logout')}
           </button>
         </div>
       </div>
