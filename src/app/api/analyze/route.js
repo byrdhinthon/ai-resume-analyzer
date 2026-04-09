@@ -55,36 +55,34 @@ export async function POST(request) {
     }
 
     // 3. ส่งให้ OpenAI วิเคราะห์
+    // ดึงเกณฑ์จาก database
+    const { data: criteriaData } = await supabase
+      .from('scoring_criteria')
+      .select('*')
+      .order('id')
+
+    const criteriaText = (criteriaData || []).map(c =>
+      `${c.category} (0-${c.max_score}): ${c.description}`
+    ).join('\n')
+
     const prompt = `You are an expert IT resume reviewer. Analyze the following resume for a "${jobPosition}" position.
 
 RESUME TEXT:
 ${resumeText.substring(0, 4000)}
 
-Score the resume in these 5 categories and provide specific suggestions for improvement in each category.
+Score the resume in these categories and provide specific suggestions for improvement in each category.
 Use the criteria from JobsDB Thailand career advice for IT positions.
 
 Categories and max scores:
-1. contact_info (0-10): Does it include name, email, phone, LinkedIn, GitHub/portfolio?
-2. skills (0-30): Are relevant technical skills listed? Do they match the "${jobPosition}" position?
-3. experience (0-25): Is work experience or projects relevant? Are achievements quantified?
-4. education (0-10): Is education level appropriate? Any relevant certifications?
-5. structure (0-25): Is the resume well-organized, concise, and professional?
+${criteriaText}
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
 {
   "scores": {
-    "contact_info": <number 0-10>,
-    "skills": <number 0-30>,
-    "experience": <number 0-25>,
-    "education": <number 0-10>,
-    "structure": <number 0-25>
+    ${(criteriaData || []).map(c => `"${c.category}": <number 0-${c.max_score}>`).join(',\n    ')}
   },
   "suggestions": {
-    "contact_info": "<suggestion in Thai>",
-    "skills": "<suggestion in Thai>",
-    "experience": "<suggestion in Thai>",
-    "education": "<suggestion in Thai>",
-    "structure": "<suggestion in Thai>"
+    ${(criteriaData || []).map(c => `"${c.category}": "<suggestion in Thai>"`).join(',\n    ')}
   },
   "summary": "<overall summary in Thai, 2-3 sentences>"
 }`
