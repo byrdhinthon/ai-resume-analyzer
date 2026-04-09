@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AuthLayout from '@/components/AuthLayout'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AnalyzePage() {
   const router = useRouter()
@@ -129,18 +130,17 @@ export default function AnalyzePage() {
 
     setLoading(false)
   }
-
+  const { t } = useLanguage()
   return (
     <AuthLayout requiredRole="member">
-      <h1 className="text-2xl font-bold mb-6">วิเคราะห์เรซูเม่</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('analyze.title')}</h1>
 
       <div className="max-w-2xl bg-white rounded-lg shadow-sm border p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* เลือกตำแหน่งงาน */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              ตำแหน่งงานที่ต้องการสมัคร
+              {t('analyze.selectPosition')}
             </label>
 
             <div className="flex items-center gap-4 mb-3">
@@ -151,7 +151,7 @@ export default function AnalyzePage() {
                   onChange={() => setUseCustom(false)}
                   className="text-blue-600"
                 />
-                <span className="text-sm">เลือกจากรายการ</span>
+                <span className="text-sm">{t('analyze.fromList')}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -160,7 +160,7 @@ export default function AnalyzePage() {
                   onChange={() => setUseCustom(true)}
                   className="text-blue-600"
                 />
-                <span className="text-sm">กรอกเอง</span>
+                <span className="text-sm">{t('analyze.custom')}</span>
               </label>
             </div>
 
@@ -170,7 +170,7 @@ export default function AnalyzePage() {
                 onChange={(e) => setSelectedPosition(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">-- เลือกตำแหน่งงาน --</option>
+                <option value="">{t('analyze.selectPlaceholder')}</option>
                 {jobPositions.map((job) => (
                   <option key={job.id} value={job.name}>
                     {job.name}
@@ -183,15 +183,14 @@ export default function AnalyzePage() {
                 value={customPosition}
                 onChange={(e) => setCustomPosition(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="กรอกตำแหน่งงานในสายงาน IT"
+                placeholder={t('analyze.customPlaceholder')}
               />
             )}
           </div>
 
-          {/* Upload ไฟล์ */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              อัปโหลดเรซูเม่
+              {t('analyze.upload')}
             </label>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <input
@@ -208,12 +207,12 @@ export default function AnalyzePage() {
                     <p className="text-xs text-gray-500 mt-1">
                       {(file.size / 1024 / 1024).toFixed(2)} MB
                     </p>
-                    <p className="text-xs text-blue-500 mt-2">คลิกเพื่อเปลี่ยนไฟล์</p>
+                    <p className="text-xs text-blue-500 mt-2">{t('analyze.changeFile')}</p>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-gray-500">คลิกเพื่อเลือกไฟล์</p>
-                    <p className="text-xs text-gray-400 mt-1">รองรับ PDF และ DOCX (สูงสุด 5MB)</p>
+                    <p className="text-gray-500">{t('analyze.clickToSelect')}</p>
+                    <p className="text-xs text-gray-400 mt-1">{t('analyze.fileTypes')}</p>
                   </div>
                 )}
               </label>
@@ -227,7 +226,7 @@ export default function AnalyzePage() {
             disabled={loading}
             className="w-full py-3 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
           >
-            {loading ? 'กำลังอัปโหลด...' : 'วิเคราะห์เรซูเม่'}
+            {loading ? t('analyze.uploading') : t('analyze.submit')}
           </button>
         </form>
       </div>

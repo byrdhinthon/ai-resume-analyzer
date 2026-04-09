@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import AuthLayout from '@/components/AuthLayout'
 import Link from 'next/link'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function HistoryPage() {
   const [analyses, setAnalyses] = useState([])
@@ -36,16 +37,16 @@ export default function HistoryPage() {
     if (status === 'pending') return { text: 'รอวิเคราะห์', color: 'bg-yellow-100 text-yellow-700' }
     return { text: 'ล้มเหลว', color: 'bg-red-100 text-red-700' }
   }
-
+  const { t } = useLanguage()
   return (
     <AuthLayout requiredRole="member">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">ประวัติการวิเคราะห์</h1>
+        <h1 className="text-2xl font-bold">{t('history.title')}</h1>
         <Link
           href="/dashboard/analyze"
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
         >
-          วิเคราะห์ใหม่
+          {t('history.newAnalysis')}
         </Link>
       </div>
 
@@ -53,12 +54,12 @@ export default function HistoryPage() {
         <p className="text-center text-gray-500 mt-10">กำลังโหลด...</p>
       ) : analyses.length === 0 ? (
         <div className="text-center mt-10 bg-white rounded-lg border p-8">
-          <p className="text-gray-500 mb-4">ยังไม่มีประวัติการวิเคราะห์</p>
+          <p className="text-gray-500 mb-4">{t('history.empty')}</p>
           <Link
             href="/dashboard/analyze"
             className="text-blue-600 hover:underline"
           >
-            เริ่มวิเคราะห์เรซูเม่ตอนนี้
+            {t('history.startNow')}
           </Link>
         </div>
       ) : (
@@ -68,17 +69,21 @@ export default function HistoryPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">วันที่</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">ไฟล์</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">ตำแหน่งงาน</th>
-                  <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">คะแนน</th>
-                  <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">สถานะ</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.date')}</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.file')}</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.position')}</th>
+                  <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">{t('history.score')}</th>
+                  <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">{t('history.status')}</th>
                   <th className="text-center px-4 py-3 text-sm font-medium text-gray-600"></th>
                 </tr>
               </thead>
               <tbody>
                 {analyses.map((item) => {
-                  const status = getStatusLabel(item.status)
+                  const getStatusLabel = (status) => {
+                    if (status === 'completed') return { text: t('history.completed'), color: 'bg-green-100 text-green-700' }
+                    if (status === 'pending') return { text: t('history.pending'), color: 'bg-yellow-100 text-yellow-700' }
+                    return { text: t('history.failed'), color: 'bg-red-100 text-red-700' }
+                  }
                   return (
                     <tr key={item.id} className="border-b last:border-b-0 hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-gray-600">
@@ -109,7 +114,7 @@ export default function HistoryPage() {
                             href={`/dashboard/analyze/${item.id}`}
                             className="text-sm text-blue-600 hover:underline"
                           >
-                            ดูรายละเอียด
+                            {t('history.viewDetail')}
                           </Link>
                         )}
                       </td>
@@ -152,7 +157,7 @@ export default function HistoryPage() {
                           href={`/dashboard/analyze/${item.id}`}
                           className="text-sm text-blue-600 hover:underline"
                         >
-                          ดูรายละเอียด
+                          {t('history.viewDetail')}
                         </Link>
                       )}
                     </div>
