@@ -44,7 +44,7 @@ export default function AnalyzePage() {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ]
     if (!allowedTypes.includes(selected.type)) {
-      setError('รองรับเฉพาะไฟล์ PDF (.pdf) และ Word (.docx) เท่านั้น')
+      setError(t('analyze.fileTypeError'))
       setFile(null)
       e.target.value = ''
       return
@@ -52,7 +52,7 @@ export default function AnalyzePage() {
 
     // เช็คขนาดไฟล์ (5MB)
     if (selected.size > 5 * 1024 * 1024) {
-      setError('ขนาดไฟล์ต้องไม่เกิน 5MB')
+      setError(t('analyze.fileSizeError'))
       setFile(null)
       e.target.value = ''
       return
@@ -68,11 +68,11 @@ export default function AnalyzePage() {
 
     const jobPosition = useCustom ? customPosition.trim() : selectedPosition
     if (!jobPosition) {
-      setError('กรุณาเลือกหรือกรอกตำแหน่งงาน')
+      setError(t('analyze.selectPositionError'))
       return
     }
     if (!file) {
-      setError('กรุณาเลือกไฟล์เรซูเม่')
+      setError(t('analyze.selectFileError'))
       return
     }
 
@@ -92,7 +92,7 @@ export default function AnalyzePage() {
         .upload(fileName, file)
 
       if (uploadError) {
-        setError('อัปโหลดไฟล์ล้มเหลว: ' + uploadError.message)
+        setError(uploadError.message)
         setLoading(false)
         return
       }
@@ -116,16 +116,16 @@ export default function AnalyzePage() {
         .single()
 
       if (insertError) {
-        setError('บันทึกข้อมูลล้มเหลว: ' + insertError.message)
+        setError(insertError.message)
         setLoading(false)
         return
       }
 
-      alert('อัปโหลดสำเร็จ! กำลังไปยังหน้าวิเคราะห์...')
+      alert(t('analyze.uploadSuccess'))
       router.push(`/dashboard/analyze/${analysis.id}`)
 
     } catch (err) {
-      setError('เกิดข้อผิดพลาด: ' + err.message)
+      setError(err.message)
     }
 
     setLoading(false)
