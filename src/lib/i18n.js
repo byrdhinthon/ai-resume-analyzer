@@ -116,6 +116,21 @@ const translations = {
     'common.delete': 'ลบ',
     'common.total': 'ทั้งหมด',
     'common.person': 'คน',
+
+    // Admin Dashboard
+    'admin.title': 'Admin Dashboard',
+    'admin.totalUsers': 'ผู้ใช้งานทั้งหมด',
+    'admin.totalAnalyses': 'การวิเคราะห์ทั้งหมด',
+    'admin.averageScore': 'คะแนนเฉลี่ยรวม',
+    'admin.totalPositions': 'ตำแหน่งงานในระบบ',
+    'admin.manageUsers': 'จัดการผู้ใช้งาน',
+    'admin.manageUsersDesc': 'ดูข้อมูลผู้ใช้งานในระบบ',
+    'admin.managePositions': 'จัดการตำแหน่งงาน',
+    'admin.managePositionsDesc': 'เพิ่ม แก้ไข ลบตำแหน่งงาน',
+    'admin.manageCriteria': 'จัดการเกณฑ์ประเมิน',
+    'admin.manageCriteriaDesc': 'กำหนดเกณฑ์การให้คะแนน',
+    'admin.topPositions': 'ตำแหน่งงานยอดนิยม',
+    'admin.times': 'ครั้ง',
   },
 
   en: {
@@ -235,6 +250,21 @@ const translations = {
     'common.delete': 'Delete',
     'common.total': 'Total',
     'common.person': 'users',
+
+    // Admin Dashboard
+    'admin.title': 'Admin Dashboard',
+    'admin.totalUsers': 'Total Users',
+    'admin.totalAnalyses': 'Total Analyses',
+    'admin.averageScore': 'Average Score',
+    'admin.totalPositions': 'Positions in System',
+    'admin.manageUsers': 'Manage Users',
+    'admin.manageUsersDesc': 'View user information in the system',
+    'admin.managePositions': 'Manage Positions',
+    'admin.managePositionsDesc': 'Add, edit, delete job positions',
+    'admin.manageCriteria': 'Scoring Criteria',
+    'admin.manageCriteriaDesc': 'Configure scoring criteria',
+    'admin.topPositions': 'Top Positions',
+    'admin.times': 'times',
   }
 }
 
