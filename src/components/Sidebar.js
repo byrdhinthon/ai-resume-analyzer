@@ -29,7 +29,7 @@ export default function Sidebar({ role }) {
       {/* Hamburger button - มือถือเท่านั้น */}
       <button
         onClick={() => setOpen(!open)}
-        className="md:hidden fixed top-20 left-4 z-50 p-2 bg-white border rounded-md shadow-sm"
+        className="md:hidden fixed top-[4.5rem] left-2 z-50 p-1.5 bg-white border rounded-md shadow-sm"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {open ? (

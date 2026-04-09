@@ -69,7 +69,7 @@ export default function AdminUsersPage() {
       ) : (
         <>
           {/* ตาราง */}
-          <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+          <div className="hidden md:block bg-white rounded-lg shadow-sm border overflow-hidden">
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
@@ -135,6 +135,35 @@ export default function AdminUsersPage() {
               </button>
             </div>
           )}
+
+          {/* Card บนมือถือ */}
+          <div className="md:hidden space-y-3">
+            {paginated.map((user) => (
+              <div key={user.id} className="bg-white rounded-lg shadow-sm border p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-sm font-medium">{user.username}</p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {user.role}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-xs text-gray-400">
+                    {new Date(user.created_at).toLocaleDateString('th-TH', {
+                      year: 'numeric', month: 'short', day: 'numeric'
+                    })}
+                  </p>
+                  <Link href={`/admin/users/${user.id}`} className="text-sm text-blue-600 hover:underline">
+                    ดูรายละเอียด
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
         </>
       )}
     </AuthLayout>
