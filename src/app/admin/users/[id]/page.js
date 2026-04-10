@@ -53,7 +53,7 @@ export default function AdminUserDetailPage({ params }) {
   if (loading) {
     return (
       <AuthLayout requiredRole="admin">
-        <p className="text-gray-500">กำลังโหลด...</p>
+        <p className="text-gray-500">{t('common.loading')}</p>
       </AuthLayout>
     )
   }
@@ -63,7 +63,7 @@ export default function AdminUserDetailPage({ params }) {
       <AuthLayout requiredRole="admin">
         <p className="text-red-500">{t('admin.userDetail.notFound')}</p>
         <Link href="/admin/users" className="text-blue-600 hover:underline mt-4 inline-block">
-          กลับ
+          {t('admin.userDetail.back')}
         </Link>
       </AuthLayout>
     )
