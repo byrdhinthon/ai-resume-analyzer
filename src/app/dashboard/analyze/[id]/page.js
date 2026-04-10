@@ -6,14 +6,9 @@ import ScoreOverview from '@/components/ScoreOverview'
 import ScoreCard from '@/components/ScoreCard'
 import SuggestionCard from '@/components/SuggestionCard'
 import Link from 'next/link'
+import { useLanguage } from '@/lib/LanguageContext'
 
-const categories = [
-  { key: 'contact_info', label: 'ข้อมูลติดต่อ', max: 10 },
-  { key: 'skills', label: 'ทักษะ', max: 30 },
-  { key: 'experience', label: 'ประสบการณ์', max: 25 },
-  { key: 'education', label: 'ระดับการศึกษา', max: 10 },
-  { key: 'structure', label: 'โครงสร้างเรซูเม่', max: 25 }
-]
+
 
 export default function AnalysisResultPage({ params }) {
   const { id } = use(params)
@@ -21,7 +16,16 @@ export default function AnalysisResultPage({ params }) {
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState('')
+  const { t } = useLanguage()
 
+  const categories = [
+    { key: 'contact_info', label: t('result.contactInfo'), max: 10 },
+    { key: 'skills', label: t('result.skills'), max: 30 },
+    { key: 'experience', label: t('result.experience'), max: 25 },
+    { key: 'education', label: t('result.education'), max: 10 },
+    { key: 'structure', label: t('result.structure'), max: 25 }
+  ]
+  
   useEffect(() => {
     loadAnalysis()
   }, [id])
@@ -76,7 +80,7 @@ export default function AnalysisResultPage({ params }) {
   if (loading) {
     return (
       <AuthLayout requiredRole="member">
-        <p className="text-center text-gray-500 mt-10">กำลังโหลด...</p>
+        <p className="text-center text-gray-500 mt-10">{t('common.loading')}</p>
       </AuthLayout>
     )
   }
@@ -87,7 +91,7 @@ export default function AnalysisResultPage({ params }) {
         <div className="text-center mt-10">
           <p className="text-red-500 mb-4">{error}</p>
           <Link href="/dashboard/analyze" className="text-blue-600 hover:underline">
-            กลับไปหน้าวิเคราะห์
+            {t('result.newAnalysis')}
           </Link>
         </div>
       </AuthLayout>
@@ -99,20 +103,20 @@ export default function AnalysisResultPage({ params }) {
       {analyzing ? (
         <div className="text-center mt-20">
           <div className="inline-block w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-xl font-medium text-gray-700">กำลังวิเคราะห์เรซูเม่ด้วย AI...</p>
-          <p className="text-sm text-gray-500 mt-2">อาจใช้เวลา 10-30 วินาที</p>
+          <p className="text-xl font-medium text-gray-700">{t('analyze.analyzing')}</p>
+          <p className="text-sm text-gray-500 mt-2">{t('analyze.analyzingWait')}</p>
         </div>
       ) : analysis.status === 'completed' ? (
         <div className="max-w-4xl">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">ผลการวิเคราะห์</h1>
+            <h1 className="text-2xl font-bold">{t('result.title')}</h1>
             <div className="flex gap-3">
               <Link href="/dashboard/history" className="text-sm text-gray-600 hover:underline">
-                ประวัติทั้งหมด
+                {t('result.allHistory')}
               </Link>
               <Link href="/dashboard/analyze" className="text-sm text-blue-600 hover:underline">
-                วิเคราะห์ใหม่
+                {t('result.newAnalysis')}
               </Link>
             </div>
           </div>
@@ -120,8 +124,8 @@ export default function AnalysisResultPage({ params }) {
           {/* ข้อมูลไฟล์ */}
           <div className="bg-white rounded-lg shadow-sm border p-4 mb-6 flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-600">ไฟล์: <strong>{analysis.file_name}</strong></p>
-              <p className="text-sm text-gray-600">ตำแหน่งงาน: <strong>{analysis.job_position}</strong></p>
+              <p className="text-sm text-gray-600">{t('result.file')}: <strong>{analysis.file_name}</strong></p>
+              <p className="text-sm text-gray-600">{t('result.position')}: <strong>{analysis.job_position}</strong></p>
             </div>
             <p className="text-xs text-gray-400">
               {new Date(analysis.created_at).toLocaleDateString('th-TH', {
@@ -133,11 +137,11 @@ export default function AnalysisResultPage({ params }) {
 
           {/* คะแนนรวม */}
           <div className="mb-6">
-            <ScoreOverview score={analysis.total_score} />
+            <ScoreOverview score={analysis.total_score} label={t('result.totalScore')} />
           </div>
 
           {/* คะแนนแต่ละหมวด */}
-          <h2 className="text-lg font-bold mb-3">คะแนนแต่ละหมวด</h2>
+          <h2 className="text-lg font-bold mb-3">{t('result.categoryScores')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {categories.map(({ key, label, max }) => (
               <ScoreCard
@@ -151,12 +155,12 @@ export default function AnalysisResultPage({ params }) {
 
           {/* สรุปภาพรวม */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-            <h2 className="text-lg font-bold text-blue-800 mb-2">สรุปภาพรวม</h2>
+            <h2 className="text-lg font-bold text-blue-800 mb-2">{t('result.summary')}</h2>
             <p className="text-gray-700 leading-relaxed">{analysis.suggestions?.summary}</p>
           </div>
 
           {/* คำแนะนำแต่ละหมวด */}
-          <h2 className="text-lg font-bold mb-3">คำแนะนำการปรับปรุง</h2>
+          <h2 className="text-lg font-bold mb-3">{t('result.suggestions')}</h2>
           <div className="space-y-3 mb-8">
             {categories.map(({ key, label, max }) => (
               <SuggestionCard
@@ -171,9 +175,9 @@ export default function AnalysisResultPage({ params }) {
         </div>
       ) : (
         <div className="text-center mt-10">
-          <p className="text-red-500 mb-4">การวิเคราะห์ล้มเหลว</p>
+          <p className="text-red-500 mb-4">Analysis failed</p>
           <Link href="/dashboard/analyze" className="text-blue-600 hover:underline">
-            ลองใหม่อีกครั้ง
+            {t('result.newAnalysis')}
           </Link>
         </div>
       )}

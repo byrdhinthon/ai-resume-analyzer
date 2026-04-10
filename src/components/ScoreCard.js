@@ -1,3 +1,6 @@
+import { useLanguage } from '@/lib/LanguageContext'
+
+
 export default function ScoreCard({ label, score, maxScore }) {
   const percent = (score / maxScore) * 100
 
@@ -8,10 +11,10 @@ export default function ScoreCard({ label, score, maxScore }) {
   }
 
   const getLevel = () => {
-    if (percent >= 80) return 'ดีมาก'
-    if (percent >= 60) return 'ดี'
-    if (percent >= 40) return 'พอใช้'
-    return 'ควรปรับปรุง'
+    if (percent >= 80) return t('score.excellent')
+    if (percent >= 60) return t('score.good')
+    if (percent >= 40) return t('score.fair')
+    return t('score.needImprovement')
   }
 
   const getLevelColor = () => {
@@ -20,6 +23,7 @@ export default function ScoreCard({ label, score, maxScore }) {
     return 'text-red-600'
   }
 
+  const { t } = useLanguage()
   return (
     <div className="bg-white rounded-lg shadow-sm border p-4">
       <div className="flex justify-between items-center mb-2">

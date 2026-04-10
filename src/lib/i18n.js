@@ -131,6 +131,12 @@ const translations = {
     'admin.manageCriteriaDesc': 'กำหนดเกณฑ์การให้คะแนน',
     'admin.topPositions': 'ตำแหน่งงานยอดนิยม',
     'admin.times': 'ครั้ง',
+
+    'result.contactInfo': 'ข้อมูลติดต่อ',
+    'result.skills': 'ทักษะ',
+    'result.experience': 'ประสบการณ์',
+    'result.education': 'ระดับการศึกษา',
+    'result.structure': 'โครงสร้างเรซูเม่',
   },
 
   en: {
@@ -265,6 +271,12 @@ const translations = {
     'admin.manageCriteriaDesc': 'Configure scoring criteria',
     'admin.topPositions': 'Top Positions',
     'admin.times': 'times',
+
+    'result.contactInfo': 'Contact Info',
+    'result.skills': 'Skills',
+    'result.experience': 'Experience',
+    'result.education': 'Education',
+    'result.structure': 'Resume Structure',
   }
 }
 
