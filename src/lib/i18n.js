@@ -137,6 +137,20 @@ const translations = {
     'result.experience': 'ประสบการณ์',
     'result.education': 'ระดับการศึกษา',
     'result.structure': 'โครงสร้างเรซูเม่',
+
+    'admin.users.title': 'จัดการผู้ใช้งาน',
+    'admin.users.search': 'ค้นหาด้วยชื่อผู้ใช้หรืออีเมล...',
+    'admin.users.total': 'ทั้งหมด',
+    'admin.users.person': 'คน',
+    'admin.users.username': 'ชื่อผู้ใช้',
+    'admin.users.email': 'อีเมล',
+    'admin.users.role': 'สถานะ',
+    'admin.users.date': 'วันที่สมัคร',
+    'admin.users.detail': 'ดูรายละเอียด',
+    'admin.users.notFound': 'ไม่พบผู้ใช้งาน',
+    'admin.users.prev': 'ก่อนหน้า',
+    'admin.users.next': 'ถัดไป',
+    'admin.users.page': 'หน้า',
   },
 
   en: {
@@ -277,6 +291,20 @@ const translations = {
     'result.experience': 'Experience',
     'result.education': 'Education',
     'result.structure': 'Resume Structure',
+
+    'admin.users.title': 'Manage Users',
+    'admin.users.search': 'Search by username or email...',
+    'admin.users.total': 'Total',
+    'admin.users.person': 'users',
+    'admin.users.username': 'Username',
+    'admin.users.email': 'Email',
+    'admin.users.role': 'Role',
+    'admin.users.date': 'Registered',
+    'admin.users.detail': 'View Detail',
+    'admin.users.notFound': 'No users found',
+    'admin.users.prev': 'Previous',
+    'admin.users.next': 'Next',
+    'admin.users.page': 'Page',
   }
 }
 

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import AuthLayout from '@/components/AuthLayout'
 import Link from 'next/link'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([])
@@ -42,10 +43,11 @@ export default function AdminUsersPage() {
 
   const totalPages = Math.ceil(filtered.length / perPage)
   const paginated = filtered.slice((page - 1) * perPage, page * perPage)
+  const { t } = useLanguage()
 
   return (
     <AuthLayout requiredRole="admin">
-      <h1 className="text-2xl font-bold mb-6">จัดการผู้ใช้งาน</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('admin.users.title')}</h1>
 
       {/* Search */}
       <div className="mb-4">
@@ -53,18 +55,18 @@ export default function AdminUsersPage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="ค้นหาด้วยชื่อผู้ใช้หรืออีเมล..."
+          placeholder={t('admin.users.search')}
           className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
-      <p className="text-sm text-gray-500 mb-4">ทั้งหมด {filtered.length} คน</p>
+      <p className="text-sm text-gray-500 mb-4">{t('admin.users.total')} {filtered.length} {t('admin.users.person')}</p>
 
       {loading ? (
         <p className="text-gray-500">กำลังโหลด...</p>
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-lg border p-8 text-center">
-          <p className="text-gray-500">ไม่พบผู้ใช้งาน</p>
+          <p className="text-gray-500">{t('admin.users.notFound')}</p>
         </div>
       ) : (
         <>
@@ -73,10 +75,10 @@ export default function AdminUsersPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">ชื่อผู้ใช้</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">อีเมล</th>
-                  <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">สถานะ</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">วันที่สมัคร</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('admin.users.username')}</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('admin.users.email')}</th>
+                  <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">{t('admin.users.role')}</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('admin.users.date')}</th>
                   <th className="text-center px-4 py-3 text-sm font-medium text-gray-600"></th>
                 </tr>
               </thead>
@@ -86,11 +88,10 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3 text-sm font-medium text-gray-800">{user.username}</td>
                     <td className="px-4 py-3 text-sm text-gray-600">{user.email}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        user.role === 'admin'
+                      <span className={`text-xs px-2 py-1 rounded-full ${user.role === 'admin'
                           ? 'bg-purple-100 text-purple-700'
                           : 'bg-blue-100 text-blue-700'
-                      }`}>
+                        }`}>
                         {user.role}
                       </span>
                     </td>
@@ -104,7 +105,7 @@ export default function AdminUsersPage() {
                         href={`/admin/users/${user.id}`}
                         className="text-sm text-blue-600 hover:underline"
                       >
-                        ดูรายละเอียด
+                        {t('admin.users.detail')}
                       </Link>
                     </td>
                   </tr>
@@ -121,17 +122,17 @@ export default function AdminUsersPage() {
                 disabled={page === 1}
                 className="px-3 py-1 text-sm border rounded disabled:text-gray-300 hover:bg-gray-50"
               >
-                ก่อนหน้า
+                {t('admin.users.prev')}
               </button>
               <span className="text-sm text-gray-600">
-                หน้า {page} / {totalPages}
+                {t('admin.users.page')} {page} / {totalPages}
               </span>
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 className="px-3 py-1 text-sm border rounded disabled:text-gray-300 hover:bg-gray-50"
               >
-                ถัดไป
+                {t('admin.users.next')}
               </button>
             </div>
           )}
@@ -145,9 +146,8 @@ export default function AdminUsersPage() {
                     <p className="text-sm font-medium">{user.username}</p>
                     <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-                  }`}>
+                  <span className={`text-xs px-2 py-1 rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
                     {user.role}
                   </span>
                 </div>
@@ -158,7 +158,7 @@ export default function AdminUsersPage() {
                     })}
                   </p>
                   <Link href={`/admin/users/${user.id}`} className="text-sm text-blue-600 hover:underline">
-                    ดูรายละเอียด
+                    {t('admin.users.detail')}
                   </Link>
                 </div>
               </div>
