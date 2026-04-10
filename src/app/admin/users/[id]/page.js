@@ -3,12 +3,14 @@ import { useState, useEffect, use } from 'react'
 import { supabase } from '@/lib/supabase'
 import AuthLayout from '@/components/AuthLayout'
 import Link from 'next/link'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AdminUserDetailPage({ params }) {
   const { id } = use(params)
   const [profile, setProfile] = useState(null)
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading] = useState(true)
+  const { t } = useLanguage()
 
   useEffect(() => {
     async function loadData() {
@@ -59,7 +61,7 @@ export default function AdminUserDetailPage({ params }) {
   if (!profile) {
     return (
       <AuthLayout requiredRole="admin">
-        <p className="text-red-500">ไม่พบข้อมูลผู้ใช้</p>
+        <p className="text-red-500">{t('admin.userDetail.notFound')}</p>
         <Link href="/admin/users" className="text-blue-600 hover:underline mt-4 inline-block">
           กลับ
         </Link>
@@ -71,32 +73,31 @@ export default function AdminUserDetailPage({ params }) {
     <AuthLayout requiredRole="admin">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/admin/users" className="text-gray-400 hover:text-gray-600">
-          ← กลับ
+          {t('admin.userDetail.back')}
         </Link>
-        <h1 className="text-2xl font-bold">ข้อมูลผู้ใช้งาน</h1>
+        <h1 className="text-2xl font-bold">{t('admin.userDetail.title')}</h1>
       </div>
 
       {/* ข้อมูลผู้ใช้ */}
       <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-500">ชื่อผู้ใช้</p>
+            <p className="text-sm text-gray-500">{t('admin.userDetail.username')}</p>
             <p className="font-medium">{profile.username}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">อีเมล</p>
+            <p className="text-sm text-gray-500">{t('admin.userDetail.email')}</p>
             <p className="font-medium">{profile.email}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">สถานะ</p>
-            <span className={`text-xs px-2 py-1 rounded-full ${
-              profile.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-            }`}>
+            <p className="text-sm text-gray-500">{t('admin.userDetail.role')}</p>
+            <span className={`text-xs px-2 py-1 rounded-full ${profile.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+              }`}>
               {profile.role}
             </span>
           </div>
           <div>
-            <p className="text-sm text-gray-500">วันที่สมัคร</p>
+            <p className="text-sm text-gray-500">{t('admin.userDetail.date')}</p>
             <p className="font-medium">
               {new Date(profile.created_at).toLocaleDateString('th-TH', {
                 year: 'numeric', month: 'long', day: 'numeric'
@@ -109,17 +110,17 @@ export default function AdminUserDetailPage({ params }) {
       {/* สถิติ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-          <p className="text-sm text-gray-500">จำนวนครั้งที่วิเคราะห์</p>
+          <p className="text-sm text-gray-500">{t('admin.userDetail.analyzeCount')}</p>
           <p className="text-2xl font-bold text-blue-600">{completedAnalyses.length}</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-          <p className="text-sm text-gray-500">คะแนนเฉลี่ย</p>
+          <p className="text-sm text-gray-500">{t('admin.userDetail.averageScore')}</p>
           <p className={`text-2xl font-bold ${completedAnalyses.length > 0 ? getScoreColor(averageScore) : 'text-gray-300'}`}>
             {completedAnalyses.length > 0 ? `${averageScore}/100` : '-'}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-          <p className="text-sm text-gray-500">ตำแหน่งงานที่สนใจ</p>
+          <p className="text-sm text-gray-500">{t('admin.userDetail.interestedPositions')}</p>
           <p className="text-2xl font-bold text-blue-600">{jobPositions.length}</p>
         </div>
       </div>
@@ -127,7 +128,7 @@ export default function AdminUserDetailPage({ params }) {
       {/* ตำแหน่งงานที่เคยกรอก */}
       {jobPositions.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-3">ตำแหน่งงานที่เคยกรอก</h2>
+          <h2 className="text-lg font-semibold mb-3">{t('admin.userDetail.pastPositions')}</h2>
           <div className="flex flex-wrap gap-2">
             {jobPositions.map((pos) => (
               <span key={pos} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
@@ -140,18 +141,18 @@ export default function AdminUserDetailPage({ params }) {
 
       {/* ประวัติการวิเคราะห์ */}
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <h2 className="text-lg font-semibold p-4 border-b">ประวัติการวิเคราะห์</h2>
+        <h2 className="text-lg font-semibold p-4 border-b">{t('admin.userDetail.history')}</h2>
         {analyses.length === 0 ? (
-          <p className="text-gray-500 text-center p-6">ยังไม่มีประวัติ</p>
+          <p className="text-gray-500 text-center p-6">{t('admin.userDetail.noHistory')}</p>
         ) : (
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">วันที่</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">ไฟล์</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">ตำแหน่งงาน</th>
-                <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">คะแนน</th>
-                <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">สถานะ</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.date')}</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.file')}</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.position')}</th>
+                <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">{t('history.score')}</th>
+                <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">{t('history.status')}</th>
               </tr>
             </thead>
             <tbody>
@@ -173,13 +174,12 @@ export default function AdminUserDetailPage({ params }) {
                     ) : '-'}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      item.status === 'completed' ? 'bg-green-100 text-green-700' :
-                      item.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {item.status === 'completed' ? 'เสร็จสิ้น' :
-                       item.status === 'pending' ? 'รอวิเคราะห์' : 'ล้มเหลว'}
+                    <span className={`text-xs px-2 py-1 rounded-full ${item.status === 'completed' ? 'bg-green-100 text-green-700' :
+                        item.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                      }`}>
+                      {item.status === 'completed' ? t('admin.userDetail.completed') :
+                        item.status === 'pending' ? t('admin.userDetail.pending') : t('admin.userDetail.failed')}
                     </span>
                   </td>
                 </tr>

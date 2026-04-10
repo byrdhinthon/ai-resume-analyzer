@@ -151,6 +151,23 @@ const translations = {
     'admin.users.prev': 'ก่อนหน้า',
     'admin.users.next': 'ถัดไป',
     'admin.users.page': 'หน้า',
+
+    'admin.userDetail.title': 'ข้อมูลผู้ใช้งาน',
+    'admin.userDetail.username': 'ชื่อผู้ใช้',
+    'admin.userDetail.email': 'อีเมล',
+    'admin.userDetail.role': 'สถานะ',
+    'admin.userDetail.date': 'วันที่สมัคร',
+    'admin.userDetail.analyzeCount': 'จำนวนครั้งที่วิเคราะห์',
+    'admin.userDetail.averageScore': 'คะแนนเฉลี่ย',
+    'admin.userDetail.interestedPositions': 'ตำแหน่งงานที่สนใจ',
+    'admin.userDetail.pastPositions': 'ตำแหน่งงานที่เคยกรอก',
+    'admin.userDetail.history': 'ประวัติการวิเคราะห์',
+    'admin.userDetail.noHistory': 'ยังไม่มีประวัติ',
+    'admin.userDetail.notFound': 'ไม่พบข้อมูลผู้ใช้',
+    'admin.userDetail.back': '← กลับ',
+    'admin.userDetail.completed': 'เสร็จสิ้น',
+    'admin.userDetail.pending': 'รอวิเคราะห์',
+    'admin.userDetail.failed': 'ล้มเหลว',
   },
 
   en: {
@@ -305,7 +322,25 @@ const translations = {
     'admin.users.prev': 'Previous',
     'admin.users.next': 'Next',
     'admin.users.page': 'Page',
+
+    'admin.userDetail.title': 'User Detail',
+    'admin.userDetail.username': 'Username',
+    'admin.userDetail.email': 'Email',
+    'admin.userDetail.role': 'Role',
+    'admin.userDetail.date': 'Registered',
+    'admin.userDetail.analyzeCount': 'Total Analyses',
+    'admin.userDetail.averageScore': 'Average Score',
+    'admin.userDetail.interestedPositions': 'Interested Positions',
+    'admin.userDetail.pastPositions': 'Past Job Positions',
+    'admin.userDetail.history': 'Analysis History',
+    'admin.userDetail.noHistory': 'No history yet',
+    'admin.userDetail.notFound': 'User not found',
+    'admin.userDetail.back': '← Back',
+    'admin.userDetail.completed': 'Completed',
+    'admin.userDetail.pending': 'Pending',
+    'admin.userDetail.failed': 'Failed',
   }
+
 }
 
 export function getTranslation(locale, key) {
