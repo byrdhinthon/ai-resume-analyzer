@@ -168,6 +168,19 @@ const translations = {
     'admin.userDetail.completed': 'เสร็จสิ้น',
     'admin.userDetail.pending': 'รอวิเคราะห์',
     'admin.userDetail.failed': 'ล้มเหลว',
+
+    'admin.positions.title': 'จัดการตำแหน่งงาน',
+    'admin.positions.add': '+ เพิ่มตำแหน่ง',
+    'admin.positions.addNew': 'เพิ่มตำแหน่งใหม่',
+    'admin.positions.name': 'ชื่อตำแหน่งงาน',
+    'admin.positions.id': 'ID',
+    'admin.positions.posName': 'ชื่อตำแหน่ง',
+    'admin.positions.status': 'สถานะ',
+    'admin.positions.manage': 'จัดการ',
+    'admin.positions.active': 'เปิดใช้งาน',
+    'admin.positions.inactive': 'ปิดใช้งาน',
+    'admin.positions.customTitle': 'ตำแหน่งที่ผู้ใช้กรอกเอง',
+    'admin.positions.customDesc': 'ตำแหน่งเหล่านี้ถูกกรอกโดยผู้ใช้โดยไม่ได้เลือกจากรายการ',
   },
 
   en: {
@@ -339,6 +352,19 @@ const translations = {
     'admin.userDetail.completed': 'Completed',
     'admin.userDetail.pending': 'Pending',
     'admin.userDetail.failed': 'Failed',
+
+    'admin.positions.title': 'Manage Positions',
+    'admin.positions.add': '+ Add Position',
+    'admin.positions.addNew': 'Add New Position',
+    'admin.positions.name': 'Position name',
+    'admin.positions.id': 'ID',
+    'admin.positions.posName': 'Position Name',
+    'admin.positions.status': 'Status',
+    'admin.positions.manage': 'Manage',
+    'admin.positions.active': 'Active',
+    'admin.positions.inactive': 'Inactive',
+    'admin.positions.customTitle': 'Custom Positions',
+    'admin.positions.customDesc': 'These positions were entered by users without selecting from the list',
   }
 
 }

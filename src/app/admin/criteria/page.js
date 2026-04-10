@@ -153,7 +153,7 @@ export default function AdminCriteriaPage() {
                     onClick={() => startEdit(item)}
                     className="text-sm text-blue-600 hover:underline"
                   >
-                    แก้ไข
+                    {t('common.edit')}
                   </button>
                 </div>
               )}
