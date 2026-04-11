@@ -12,6 +12,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const perPage = 10
+  const { t } = useLanguage()
 
   useEffect(() => {
     async function loadUsers() {
@@ -43,7 +44,7 @@ export default function AdminUsersPage() {
 
   const totalPages = Math.ceil(filtered.length / perPage)
   const paginated = filtered.slice((page - 1) * perPage, page * perPage)
-  const { t } = useLanguage()
+
 
   return (
     <AuthLayout requiredRole="admin">
@@ -63,7 +64,7 @@ export default function AdminUsersPage() {
       <p className="text-sm text-gray-500 mb-4">{t('admin.users.total')} {filtered.length} {t('admin.users.person')}</p>
 
       {loading ? (
-        <p className="text-gray-500">กำลังโหลด...</p>
+        <p className="text-gray-500">{t('common.loading')}</p>
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-lg border p-8 text-center">
           <p className="text-gray-500">{t('admin.users.notFound')}</p>

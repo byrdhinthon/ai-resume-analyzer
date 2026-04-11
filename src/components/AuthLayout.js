@@ -4,11 +4,13 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AuthLayout({ children, requiredRole }) {
   const router = useRouter()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const { t } = useLanguage()
 
   useEffect(() => {
     async function checkAuth() {
@@ -49,7 +51,7 @@ export default function AuthLayout({ children, requiredRole }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg text-gray-500">กำลังโหลด...</p>
+        <p className="text-lg text-gray-500">{t('common.loading')}</p>
       </div>
     )
   }

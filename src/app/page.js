@@ -2,9 +2,11 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function Home() {
   const router = useRouter()
+  const { t } = useLanguage()
 
   useEffect(() => {
     async function checkAuth() {
@@ -32,7 +34,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <p className="text-lg">กำลังโหลด...</p>
+      <p className="text-lg">{t('common.loading')}</p>
     </div>
   )
 }

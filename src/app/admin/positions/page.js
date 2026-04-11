@@ -146,7 +146,7 @@ export default function AdminPositionsPage() {
       )}
 
       {loading ? (
-        <p className="text-gray-500">กำลังโหลด...</p>
+        <p className="text-gray-500">{t('common.loading')}</p>
       ) : (
         <>
           {/* ตารางตำแหน่งงาน */}

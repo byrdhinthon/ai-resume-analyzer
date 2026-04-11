@@ -51,7 +51,7 @@ export default function HistoryPage() {
       </div>
 
       {loading ? (
-        <p className="text-center text-gray-500 mt-10">กำลังโหลด...</p>
+        <p className="text-center text-gray-500 mt-10">{t('common.loading')}</p>
       ) : analyses.length === 0 ? (
         <div className="text-center mt-10 bg-white rounded-lg border p-8">
           <p className="text-gray-500 mb-4">{t('history.empty')}</p>
