@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import AuthLayout from '@/components/AuthLayout'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AdminCriteriaPage() {
   const [criteria, setCriteria] = useState([])
@@ -10,6 +11,7 @@ export default function AdminCriteriaPage() {
   const [editData, setEditData] = useState({})
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const { t } = useLanguage()
 
   useEffect(() => {
     loadCriteria()
