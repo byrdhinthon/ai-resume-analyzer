@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -12,18 +13,19 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const { t } = useLanguage()
 
   const handleRegister = async (e) => {
     e.preventDefault()
     setError('')
 
     if (password !== confirmPassword) {
-      setError('รหัสผ่านไม่ตรงกัน')
+      setError(t('auth.passwordMismatch'))
       return
     }
 
     if (password.length < 6) {
-      setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร')
+      setError(t('auth.passwordTooShort'))
       return
     }
 
@@ -43,19 +45,19 @@ export default function RegisterPage() {
       return
     }
 
-    alert('สมัครสมาชิกสำเร็จ!')
+    alert(t('auth.registerSuccess'))
     router.push('/login')
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md p-6 md:p-8 mx-4 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6">สมัครสมาชิก</h1>
+        <h1 className="text-2xl font-bold text-center mb-6">{t('auth.register')}</h1>
 
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              ชื่อผู้ใช้ (Username)
+              {t('auth.username')}
             </label>
             <input
               type="text"
@@ -63,13 +65,13 @@ export default function RegisterPage() {
               onChange={(e) => setUsername(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="กรอกชื่อผู้ใช้"
+              placeholder="{t('auth.usernamePlaceholder')}"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              อีเมล (Email)
+              {t('auth.email')}
             </label>
             <input
               type="email"
@@ -77,13 +79,13 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="กรอกอีเมล"
+              placeholder="{t('auth.emailPlaceholder')}"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              รหัสผ่าน (Password)
+              {t('auth.password')}
             </label>
             <input
               type="password"
@@ -91,13 +93,13 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="อย่างน้อย 6 ตัวอักษร"
+              placeholder="{t('auth.passwordMin')}"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              ยืนยันรหัสผ่าน
+              {t('auth.confirmPassword')}
             </label>
             <input
               type="password"
@@ -105,7 +107,7 @@ export default function RegisterPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="กรอกรหัสผ่านอีกครั้ง"
+              placeholder="{t('auth.confirmPlaceholder')}"
             />
           </div>
 
@@ -118,14 +120,14 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {loading ? 'กำลังสมัคร...' : 'สมัครสมาชิก'}
+            {loading ? t('auth.registering') : t('auth.register') }
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-4">
-          มีบัญชีอยู่แล้ว?{' '}
+          {t('auth.hasAccount')}{' '}
           <Link href="/login" className="text-blue-600 hover:underline">
-            เข้าสู่ระบบ
+            {t('auth.login')}
           </Link>
         </p>
       </div>

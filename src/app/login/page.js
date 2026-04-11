@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const { t } = useLanguage()
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -45,12 +47,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md p-6 md:p-8 mx-4 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6">เข้าสู่ระบบ</h1>
+        <h1 className="text-2xl font-bold text-center mb-6">{t('auth.login')}</h1>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              อีเมล (Email)
+              {t('auth.email')}
             </label>
             <input
               type="email"
@@ -58,13 +60,13 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="กรอกอีเมล"
+              placeholder="{t('auth.emailPlaceholder')}"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              รหัสผ่าน (Password)
+              {t('auth.password')}
             </label>
             <input
               type="password"
@@ -72,7 +74,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="กรอกรหัสผ่าน"
+              placeholder="{t('auth.passwordPlaceholder')}"
             />
           </div>
 
@@ -85,20 +87,20 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+            {loading ? t('auth.logging') : t('auth.login')}
           </button>
         </form>
 
         <div className="text-center text-sm text-gray-600 mt-4 space-y-2">
           <p>
             <Link href="/forgot-password" className="text-blue-600 hover:underline">
-              ลืมรหัสผ่าน?
+              {t('auth.forgotPassword')}
             </Link>
           </p>
           <p>
-            ยังไม่มีบัญชี?{' '}
+            {t('auth.noAccount')}{' '}
             <Link href="/register" className="text-blue-600 hover:underline">
-              สมัครสมาชิก
+              {t('auth.register')}
             </Link>
           </p>
         </div>
