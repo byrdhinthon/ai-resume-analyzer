@@ -50,22 +50,22 @@ export default function Sidebar({ role }) {
 
       {/* Sidebar */}
       <aside className={`
-        fixed md:static z-40 bg-white border-r min-h-screen p-4 w-64
-        transition-transform duration-200
-        ${open ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0
-      `}>
+  ${open ? 'fixed inset-y-0 left-0 translate-x-0 z-40' : 'hidden'}
+  md:block md:static md:translate-x-0 md:z-auto
+  bg-white border-r min-h-screen p-4 w-64
+  transition-transform duration-200
+`}>
+
         <ul className="space-y-1 mt-8 md:mt-0">
           {links.map((link) => (
             <li key={link.href}>
               <Link
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className={`block px-4 py-2 rounded-md text-sm ${
-                  pathname === link.href
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`block px-4 py-2 rounded-md text-sm ${pathname === link.href
+                  ? 'bg-blue-50 text-blue-700 font-medium'
+                  : 'text-gray-700 hover:bg-gray-50'
+                  }`}
               >
                 {link.label}
               </Link>
