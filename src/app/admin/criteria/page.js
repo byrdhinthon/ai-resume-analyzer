@@ -50,9 +50,9 @@ export default function AdminCriteriaPage() {
       .eq('id', id)
 
     if (error) {
-      setMessage('บันทึกล้มเหลว: ' + error.message)
+      setMessage(t('admin.criteria.saveFailed') + error.message)
     } else {
-      setMessage('บันทึกสำเร็จ')
+      setMessage(t('admin.criteria.saveSuccess'))
       setEditId(null)
       loadCriteria()
     }
@@ -63,10 +63,10 @@ export default function AdminCriteriaPage() {
 
   return (
     <AuthLayout requiredRole="admin">
-      <h1 className="text-2xl font-bold mb-2">จัดการเกณฑ์การประเมิน</h1>
+      <h1 className="text-2xl font-bold mb-2">{t('admin.criteria.title')}</h1>
       <p className="text-sm text-gray-500 mb-6">
-        คะแนนรวมทั้งหมด: <strong className={totalMaxScore === 100 ? 'text-green-600' : 'text-red-600'}>{totalMaxScore}/100</strong>
-        {totalMaxScore !== 100 && ' (ควรเท่ากับ 100)'}
+        {t('admin.criteria.totalScore')} <strong className={totalMaxScore === 100 ? 'text-green-600' : 'text-red-600'}>{totalMaxScore}/100</strong>
+        {totalMaxScore !== 100 && t('admin.criteria.shouldBe100')}
       </p>
 
       {message && (
@@ -76,7 +76,7 @@ export default function AdminCriteriaPage() {
       )}
 
       {loading ? (
-        <p className="text-gray-500">กำลังโหลด...</p>
+        <p className="text-gray-500">{t('common.loading')}</p>
       ) : (
         <div className="space-y-4">
           {criteria.map((item) => (
@@ -86,7 +86,7 @@ export default function AdminCriteriaPage() {
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อหมวด</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.criteria.categoryName')}</label>
                       <input
                         type="text"
                         value={editData.label}
@@ -95,7 +95,7 @@ export default function AdminCriteriaPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">คะแนนเต็ม</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.criteria.maxScore')}</label>
                       <input
                         type="number"
                         value={editData.max_score}
@@ -107,7 +107,7 @@ export default function AdminCriteriaPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">คำอธิบายเกณฑ์</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.criteria.description')}</label>
                     <textarea
                       value={editData.description}
                       onChange={(e) => setEditData({ ...editData, description: e.target.value })}
@@ -121,13 +121,13 @@ export default function AdminCriteriaPage() {
                       disabled={saving}
                       className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm disabled:bg-gray-400"
                     >
-                      {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+                      {saving ? t('admin.criteria.saving') : t('common.save')}
                     </button>
                     <button
                       onClick={() => setEditId(null)}
                       className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 text-sm"
                     >
-                      ยกเลิก
+                      {t('common.cancel')}
                     </button>
                   </div>
                 </div>
@@ -138,13 +138,13 @@ export default function AdminCriteriaPage() {
                     <div className="flex items-center gap-3 mb-2">
                       <h2 className="text-lg font-semibold">{item.label}</h2>
                       <span className="text-sm px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
-                        {item.max_score} คะแนน
+                        {item.max_score} {t('admin.criteria.points')}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">{item.category}</p>
                     <p className="text-sm text-gray-600 mt-2">{item.description}</p>
                     <p className="text-xs text-gray-400 mt-2">
-                      แก้ไขล่าสุด: {new Date(item.updated_at).toLocaleDateString('th-TH', {
+                      {t('admin.criteria.lastUpdated')} {new Date(item.updated_at).toLocaleDateString('th-TH', {
                         year: 'numeric', month: 'short', day: 'numeric'
                       })}
                     </p>

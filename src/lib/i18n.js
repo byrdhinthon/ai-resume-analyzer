@@ -181,6 +181,18 @@ const translations = {
     'admin.positions.inactive': 'ปิดใช้งาน',
     'admin.positions.customTitle': 'ตำแหน่งที่ผู้ใช้กรอกเอง',
     'admin.positions.customDesc': 'ตำแหน่งเหล่านี้ถูกกรอกโดยผู้ใช้โดยไม่ได้เลือกจากรายการ',
+
+    'admin.criteria.title': 'จัดการเกณฑ์การประเมิน',
+    'admin.criteria.totalScore': 'คะแนนรวมทั้งหมด:',
+    'admin.criteria.shouldBe100': '(ควรเท่ากับ 100)',
+    'admin.criteria.points': 'คะแนน',
+    'admin.criteria.categoryName': 'ชื่อหมวด',
+    'admin.criteria.maxScore': 'คะแนนเต็ม',
+    'admin.criteria.description': 'คำอธิบายเกณฑ์',
+    'admin.criteria.saving': 'กำลังบันทึก...',
+    'admin.criteria.saveFailed': 'บันทึกล้มเหลว: ',
+    'admin.criteria.saveSuccess': 'บันทึกสำเร็จ',
+    'admin.criteria.lastUpdated': 'แก้ไขล่าสุด:',
   },
 
   en: {
@@ -365,6 +377,18 @@ const translations = {
     'admin.positions.inactive': 'Inactive',
     'admin.positions.customTitle': 'Custom Positions',
     'admin.positions.customDesc': 'These positions were entered by users without selecting from the list',
+
+    'admin.criteria.title': 'Scoring Criteria',
+    'admin.criteria.totalScore': 'Total score:',
+    'admin.criteria.shouldBe100': '(should equal 100)',
+    'admin.criteria.points': 'points',
+    'admin.criteria.categoryName': 'Category name',
+    'admin.criteria.maxScore': 'Max score',
+    'admin.criteria.description': 'Criteria description',
+    'admin.criteria.saving': 'Saving...',
+    'admin.criteria.saveFailed': 'Save failed: ',
+    'admin.criteria.saveSuccess': 'Saved successfully',
+    'admin.criteria.lastUpdated': 'Last updated:',
   }
 
 }
