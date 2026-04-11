@@ -193,6 +193,14 @@ const translations = {
     'admin.criteria.saveFailed': 'บันทึกล้มเหลว: ',
     'admin.criteria.saveSuccess': 'บันทึกสำเร็จ',
     'admin.criteria.lastUpdated': 'แก้ไขล่าสุด:',
+
+    'auth.resetPassword': 'ตั้งรหัสผ่านใหม่',
+    'auth.newPassword': 'รหัสผ่านใหม่',
+    'auth.confirmNewPassword': 'ยืนยันรหัสผ่านใหม่',
+    'auth.changePassword': 'เปลี่ยนรหัสผ่าน',
+    'auth.changing': 'กำลังเปลี่ยน...',
+    'auth.resetSuccess': 'เปลี่ยนรหัสผ่านสำเร็จ!',
+    'auth.redirecting': 'กำลังไปหน้าเข้าสู่ระบบ...',
   },
 
   en: {
@@ -389,6 +397,14 @@ const translations = {
     'admin.criteria.saveFailed': 'Save failed: ',
     'admin.criteria.saveSuccess': 'Saved successfully',
     'admin.criteria.lastUpdated': 'Last updated:',
+
+    'auth.resetPassword': 'Reset Password',
+    'auth.newPassword': 'New Password',
+    'auth.confirmNewPassword': 'Confirm New Password',
+    'auth.changePassword': 'Change Password',
+    'auth.changing': 'Changing...',
+    'auth.resetSuccess': 'Password changed successfully!',
+    'auth.redirecting': 'Redirecting to login...',
   }
 
 }

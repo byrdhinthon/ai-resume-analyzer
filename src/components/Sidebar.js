@@ -50,11 +50,11 @@ export default function Sidebar({ role }) {
 
       {/* Sidebar */}
       <aside className={`
-  ${open ? 'fixed inset-y-0 left-0 translate-x-0 z-40' : 'hidden'}
-  md:block md:static md:translate-x-0 md:z-auto
-  bg-white border-r min-h-screen p-4 w-64
-  transition-transform duration-200
-`}>
+            ${open ? 'fixed inset-y-0 left-0 translate-x-0 z-40' : 'hidden'}
+            md:block md:static md:translate-x-0 md:z-auto
+            bg-white border-r min-h-screen p-4 w-64
+            transition-transform duration-200
+          `}>
 
         <ul className="space-y-1 mt-8 md:mt-0">
           {links.map((link) => (
