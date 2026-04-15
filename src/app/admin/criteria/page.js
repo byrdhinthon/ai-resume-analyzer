@@ -10,7 +10,7 @@ export default function AdminCriteriaPage() {
   const [editId, setEditId] = useState(null)
   const [editData, setEditData] = useState({})
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
+  const [message, setMessage] = useState(null)
   const { t } = useLanguage()
 
   useEffect(() => {
@@ -34,12 +34,12 @@ export default function AdminCriteriaPage() {
       max_score: item.max_score,
       description: item.description || ''
     })
-    setMessage('')
+    setMessage(null)
   }
 
   async function handleSave(id) {
     setSaving(true)
-    setMessage('')
+    setMessage(null)
 
     const { error } = await supabase
       .from('scoring_criteria')
@@ -52,9 +52,9 @@ export default function AdminCriteriaPage() {
       .eq('id', id)
 
     if (error) {
-      setMessage(t('admin.criteria.saveFailed') + error.message)
+      setMessage({ type: 'error', text: t('admin.criteria.saveFailed') + error.message })
     } else {
-      setMessage(t('admin.criteria.saveSuccess'))
+      setMessage({ type: 'success', text: t('admin.criteria.saveSuccess') })
       setEditId(null)
       loadCriteria()
     }
@@ -72,8 +72,8 @@ export default function AdminCriteriaPage() {
       </p>
 
       {message && (
-        <p className={`text-sm mb-4 ${message.includes('ล้มเหลว') ? 'text-red-500' : 'text-green-600'}`}>
-          {message}
+        <p className={`text-sm mb-4 ${message.type === 'error' ? 'text-red-500' : 'text-green-600'}`}>
+          {message.text}
         </p>
       )}
 

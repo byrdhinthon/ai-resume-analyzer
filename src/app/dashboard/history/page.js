@@ -32,12 +32,13 @@ export default function HistoryPage() {
     return 'text-red-600'
   }
 
-  const getStatusLabel = (status) => {
-    if (status === 'completed') return { text: 'เสร็จสิ้น', color: 'bg-green-100 text-green-700' }
-    if (status === 'pending') return { text: 'รอวิเคราะห์', color: 'bg-yellow-100 text-yellow-700' }
-    return { text: 'ล้มเหลว', color: 'bg-red-100 text-red-700' }
-  }
   const { t } = useLanguage()
+
+  const getStatusLabel = (status) => {
+    if (status === 'completed') return { text: t('history.completed'), color: 'bg-green-100 text-green-700' }
+    if (status === 'pending') return { text: t('history.pending'), color: 'bg-yellow-100 text-yellow-700' }
+    return { text: t('history.failed'), color: 'bg-red-100 text-red-700' }
+  }
   return (
     <AuthLayout requiredRole="member">
       <div className="flex justify-between items-center mb-6">
@@ -79,11 +80,7 @@ export default function HistoryPage() {
               </thead>
               <tbody>
                 {analyses.map((item) => {
-                  const getStatusLabel = (status) => {
-                    if (status === 'completed') return { text: t('history.completed'), color: 'bg-green-100 text-green-700' }
-                    if (status === 'pending') return { text: t('history.pending'), color: 'bg-yellow-100 text-yellow-700' }
-                    return { text: t('history.failed'), color: 'bg-red-100 text-red-700' }
-                  }
+                  const status = getStatusLabel(item.status)
                   return (
                     <tr key={item.id} className="border-b last:border-b-0 hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-gray-600">

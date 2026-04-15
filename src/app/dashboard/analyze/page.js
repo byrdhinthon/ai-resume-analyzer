@@ -7,6 +7,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AnalyzePage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [jobPositions, setJobPositions] = useState([])
   const [selectedPosition, setSelectedPosition] = useState('')
   const [customPosition, setCustomPosition] = useState('')
@@ -97,12 +98,8 @@ export default function AnalyzePage() {
         return
       }
 
-      // สร้าง URL สำหรับเข้าถึงไฟล์
-      const { data: urlData } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(fileName)
-
       // บันทึกลงตาราง analyses (สถานะ pending รอวิเคราะห์)
+      // file_url เก็บ storage path (เช่น "userId/timestamp.pdf") ไม่ใช่ URL เต็ม
       const { data: analysis, error: insertError } = await supabase
         .from('analyses')
         .insert({
@@ -121,7 +118,6 @@ export default function AnalyzePage() {
         return
       }
 
-      alert(t('analyze.uploadSuccess'))
       router.push(`/dashboard/analyze/${analysis.id}`)
 
     } catch (err) {
@@ -130,7 +126,6 @@ export default function AnalyzePage() {
 
     setLoading(false)
   }
-  const { t } = useLanguage()
   return (
     <AuthLayout requiredRole="member">
       <h1 className="text-2xl font-bold mb-6">{t('analyze.title')}</h1>

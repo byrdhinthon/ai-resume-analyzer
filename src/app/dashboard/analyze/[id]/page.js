@@ -54,9 +54,13 @@ export default function AnalysisResultPage({ params }) {
   async function startAnalysis(data) {
     setAnalyzing(true)
 
+    const { data: { session } } = await supabase.auth.getSession()
     const response = await fetch('/api/analyze', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
       body: JSON.stringify({
         analysisId: data.id,
         fileUrl: data.file_url,

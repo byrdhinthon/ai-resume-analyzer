@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 
 export default function DashboardPage() {
+  const { t } = useLanguage()
   const [stats, setStats] = useState({ count: 0, average: 0, latest: null })
   const [loading, setLoading] = useState(true)
 
@@ -40,7 +41,6 @@ export default function DashboardPage() {
     if (score >= 60) return 'text-yellow-600'
     return 'text-red-600'
   }
-  const { t } = useLanguage()
   return (
     <AuthLayout requiredRole="member">
       <h1 className="text-2xl font-bold mb-6">{t('dashboard.title')}</h1>

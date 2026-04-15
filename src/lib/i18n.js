@@ -181,6 +181,7 @@ const translations = {
     'admin.positions.inactive': 'ปิดใช้งาน',
     'admin.positions.customTitle': 'ตำแหน่งที่ผู้ใช้กรอกเอง',
     'admin.positions.customDesc': 'ตำแหน่งเหล่านี้ถูกกรอกโดยผู้ใช้โดยไม่ได้เลือกจากรายการ',
+    'admin.positions.deleteConfirm': 'ต้องการลบตำแหน่ง "{name}" หรือไม่?',
 
     'admin.criteria.title': 'จัดการเกณฑ์การประเมิน',
     'admin.criteria.totalScore': 'คะแนนรวมทั้งหมด:',
@@ -385,6 +386,7 @@ const translations = {
     'admin.positions.inactive': 'Inactive',
     'admin.positions.customTitle': 'Custom Positions',
     'admin.positions.customDesc': 'These positions were entered by users without selecting from the list',
+    'admin.positions.deleteConfirm': 'Are you sure you want to delete "{name}"?',
 
     'admin.criteria.title': 'Scoring Criteria',
     'admin.criteria.totalScore': 'Total score:',

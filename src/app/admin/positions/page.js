@@ -84,7 +84,7 @@ export default function AdminPositionsPage() {
   }
 
   async function handleDelete(id, name) {
-    if (!confirm(`ต้องการลบตำแหน่ง "${name}" หรือไม่?`)) return
+    if (!confirm(t('admin.positions.deleteConfirm').replace('{name}', name))) return
 
     const { error } = await supabase
       .from('job_positions')
@@ -125,13 +125,13 @@ export default function AdminPositionsPage() {
       {/* เพิ่มตำแหน่งใหม่ */}
       {showAdd && (
         <div className="bg-white rounded-lg shadow-sm border p-4 mb-4">
-          <h2 className="text-sm font-medium mb-2">เพิ่มตำแหน่งใหม่</h2>
+          <h2 className="text-sm font-medium mb-2">{t('admin.positions.addNew')}</h2>
           <div className="flex gap-2">
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="{t('admin.positions.name')}"
+              placeholder={t('admin.positions.name')}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />

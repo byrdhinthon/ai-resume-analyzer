@@ -1,6 +1,8 @@
 import { useLanguage } from '@/lib/LanguageContext'
 
 export default function ScoreOverview({ score, label = 'คะแนนรวม' }) {
+  const { t } = useLanguage()
+
   const getColor = () => {
     if (score >= 80) return 'text-green-600'
     if (score >= 60) return 'text-yellow-600'
@@ -19,8 +21,6 @@ export default function ScoreOverview({ score, label = 'คะแนนรวม
     if (score >= 60) return 'bg-yellow-50 border-yellow-200'
     return 'bg-red-50 border-red-200'
   }
-
-  const { t } = useLanguage()
   return (
     <div className={`rounded-lg border p-8 text-center ${getBgColor()}`}>
       <p className="text-sm text-gray-500 mb-2">{label}</p>

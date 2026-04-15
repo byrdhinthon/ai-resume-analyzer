@@ -2,6 +2,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 
 
 export default function ScoreCard({ label, score, maxScore }) {
+  const { t } = useLanguage()
   const percent = (score / maxScore) * 100
 
   const getBarColor = () => {
@@ -22,8 +23,6 @@ export default function ScoreCard({ label, score, maxScore }) {
     if (percent >= 60) return 'text-yellow-600'
     return 'text-red-600'
   }
-
-  const { t } = useLanguage()
   return (
     <div className="bg-white rounded-lg shadow-sm border p-4">
       <div className="flex justify-between items-center mb-2">

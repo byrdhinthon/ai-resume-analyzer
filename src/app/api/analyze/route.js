@@ -15,7 +15,7 @@ async function extractPdfText(buffer) {
   const { extractText } = await import('unpdf')
   const uint8Array = new Uint8Array(buffer)
   const result = await extractText(uint8Array)
-  return String(result.text || result.totalPages ? result.text : JSON.stringify(result))
+  return String(result.text || '')
 }
 
 // Extract text จาก DOCX
@@ -26,12 +26,35 @@ async function extractDocxText(buffer) {
 
 export async function POST(request) {
   try {
-    const { analysisId, fileUrl, fileName, jobPosition } = await request.json()
+    // 0. ตรวจสอบ auth
+    const authHeader = request.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const token = authHeader.split(' ')[1]
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { analysisId, fileUrl: filePath, fileName, jobPosition } = await request.json()
+
+    // ตรวจสอบว่า analysis นี้เป็นของ user คนนี้จริง
+    const { data: ownerCheck } = await supabase
+      .from('analyses')
+      .select('user_id')
+      .eq('id', analysisId)
+      .single()
+
+    if (!ownerCheck || ownerCheck.user_id !== user.id) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     // 1. ดึงไฟล์จาก Supabase Storage
     const { data: fileData, error: downloadError } = await supabase.storage
       .from('resumes')
-      .download(fileUrl)
+      .download(filePath)
 
     if (downloadError) {
       return Response.json({ error: 'ดาวน์โหลดไฟล์ล้มเหลว: ' + downloadError.message }, { status: 400 })
@@ -68,7 +91,7 @@ export async function POST(request) {
     const prompt = `You are an expert IT resume reviewer. Analyze the following resume for a "${jobPosition}" position.
 
 RESUME TEXT:
-${resumeText.substring(0, 4000)}
+${resumeText.substring(0, 12000)}
 
 Score the resume in these categories and provide specific suggestions for improvement in each category.
 Use the criteria from JobsDB Thailand career advice for IT positions.
@@ -107,8 +130,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
     }
 
     // 5. คำนวณคะแนนรวม
-    const totalScore = result.scores.contact_info + result.scores.skills
-      + result.scores.experience + result.scores.education + result.scores.structure
+    const totalScore = Object.values(result.scores).reduce((a, b) => a + b, 0)
 
     // 6. อัปเดตผลลงตาราง analyses
     const { error: updateError } = await supabase

@@ -6,12 +6,12 @@ import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AdminPage() {
+  const { t } = useLanguage()
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalAnalyses: 0,
     averageScore: 0,
     topPositions: []
-    
   })
   const [loading, setLoading] = useState(true)
 
@@ -62,7 +62,6 @@ export default function AdminPage() {
     if (score >= 60) return 'text-yellow-600'
     return 'text-red-600'
   }
-  const { t } = useLanguage()
   return (
     <AuthLayout requiredRole="admin">
       <h1 className="text-2xl font-bold mb-6">{t('admin.title')}</h1>
