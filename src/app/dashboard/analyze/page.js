@@ -95,7 +95,7 @@ export default function AnalyzePage() {
 
   return (
     <AuthLayout requiredRole="member">
-      <div style={{ maxWidth: 680 }}>
+      <div>
         <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-dark)', marginBottom: 24 }}>
           {t('analyze.title')}
         </h1>
