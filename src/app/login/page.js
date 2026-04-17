@@ -49,7 +49,7 @@ export default function LoginPage() {
             {t('auth.login')}
           </h1>
           <p style={{ fontSize: 15, color: 'var(--text-gray)', textAlign: 'center', marginBottom: 32 }}>
-            Sign in to analyze your resume
+            {t('auth.loginSubtitle')}
           </p>
 
           <div className="card" style={{ borderRadius: 'var(--radius-lg)', padding: 32 }}>

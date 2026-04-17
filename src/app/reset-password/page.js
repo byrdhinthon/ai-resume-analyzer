@@ -63,7 +63,7 @@ export default function ResetPasswordPage() {
             {t('auth.resetPassword')}
           </h1>
           <p style={{ fontSize: 15, color: 'var(--text-gray)', textAlign: 'center', marginBottom: 32 }}>
-            Choose a new password for your account
+            {t('auth.resetSubtitle')}
           </p>
 
           <div className="card" style={{ borderRadius: 'var(--radius-lg)', padding: 32 }}>

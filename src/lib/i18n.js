@@ -198,6 +198,11 @@ const translations = {
     'admin.criteria.saveSuccess': 'บันทึกสำเร็จ',
     'admin.criteria.lastUpdated': 'แก้ไขล่าสุด:',
 
+    'auth.loginSubtitle': 'เข้าสู่ระบบเพื่อวิเคราะห์เรซูเม่ของคุณ',
+    'auth.registerSubtitle': 'สร้างบัญชีของคุณเพื่อเริ่มต้นใช้งาน',
+    'auth.forgotSubtitle': 'กรอกอีเมลของคุณ เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้',
+    'auth.resetSubtitle': 'เลือกรหัสผ่านใหม่สำหรับบัญชีของคุณ',
+
     'auth.resetPassword': 'ตั้งรหัสผ่านใหม่',
     'auth.newPassword': 'รหัสผ่านใหม่',
     'auth.confirmNewPassword': 'ยืนยันรหัสผ่านใหม่',
@@ -405,6 +410,11 @@ const translations = {
     'admin.criteria.saveFailed': 'Save failed: ',
     'admin.criteria.saveSuccess': 'Saved successfully',
     'admin.criteria.lastUpdated': 'Last updated:',
+
+    'auth.loginSubtitle': 'Sign in to analyze your resume',
+    'auth.registerSubtitle': 'Create your account to get started',
+    'auth.forgotSubtitle': "Enter your email and we'll send you a reset link",
+    'auth.resetSubtitle': 'Choose a new password for your account',
 
     'auth.resetPassword': 'Reset Password',
     'auth.newPassword': 'New Password',

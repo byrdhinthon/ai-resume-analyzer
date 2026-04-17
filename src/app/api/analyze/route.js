@@ -40,15 +40,39 @@ export async function POST(request) {
 
     const { analysisId, fileUrl: filePath, fileName, jobPosition } = await request.json()
 
+    // ตรวจสอบ input
+    if (!analysisId || typeof analysisId !== 'string') {
+      return Response.json({ error: 'Invalid analysis ID' }, { status: 400 })
+    }
+    if (!filePath || typeof filePath !== 'string') {
+      return Response.json({ error: 'Invalid file path' }, { status: 400 })
+    }
+    if (!fileName || typeof fileName !== 'string') {
+      return Response.json({ error: 'Invalid file name' }, { status: 400 })
+    }
+    if (!jobPosition || typeof jobPosition !== 'string' || jobPosition.length > 200) {
+      return Response.json({ error: 'Invalid job position' }, { status: 400 })
+    }
+
+    // ป้องกัน path traversal
+    if (filePath.includes('..') || filePath.startsWith('/')) {
+      return Response.json({ error: 'Invalid file path' }, { status: 400 })
+    }
+
     // ตรวจสอบว่า analysis นี้เป็นของ user คนนี้จริง
     const { data: ownerCheck } = await supabase
       .from('analyses')
-      .select('user_id')
+      .select('user_id, status')
       .eq('id', analysisId)
       .single()
 
     if (!ownerCheck || ownerCheck.user_id !== user.id) {
       return Response.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // ป้องกันการวิเคราะห์ซ้ำ
+    if (ownerCheck.status !== 'pending') {
+      return Response.json({ error: 'Analysis already processed' }, { status: 400 })
     }
 
     // 1. ดึงไฟล์จาก Supabase Storage
@@ -57,7 +81,8 @@ export async function POST(request) {
       .download(filePath)
 
     if (downloadError) {
-      return Response.json({ error: 'ดาวน์โหลดไฟล์ล้มเหลว: ' + downloadError.message }, { status: 400 })
+      console.error('Download error:', downloadError.message)
+      return Response.json({ error: 'ดาวน์โหลดไฟล์ล้มเหลว' }, { status: 400 })
     }
 
     // 2. แปลงเป็น Buffer แล้ว extract text
@@ -88,7 +113,10 @@ export async function POST(request) {
       `${c.category} (0-${c.max_score}): ${c.description}`
     ).join('\n')
 
-    const prompt = `You are an expert IT resume reviewer. Analyze the following resume for a "${jobPosition}" position.
+    // Sanitize jobPosition เพื่อป้องกัน prompt injection
+    const sanitizedPosition = jobPosition.replace(/[^\w\s\-\.\/\(\)ก-๙เแโใไะาิีึืุูัํ็่้๊๋์]+/g, '').substring(0, 100)
+
+    const prompt = `You are an expert IT resume reviewer. Analyze the following resume for a "${sanitizedPosition}" position.
 
 RESUME TEXT:
 ${resumeText.substring(0, 12000)}
@@ -129,7 +157,20 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
       return Response.json({ error: 'AI ตอบกลับในรูปแบบที่ไม่ถูกต้อง' }, { status: 500 })
     }
 
-    // 5. คำนวณคะแนนรวม
+    // 5. ตรวจสอบและจำกัดคะแนนให้อยู่ในช่วงที่ถูกต้อง
+    if (!result.scores || typeof result.scores !== 'object') {
+      return Response.json({ error: 'AI ตอบกลับในรูปแบบที่ไม่ถูกต้อง' }, { status: 500 })
+    }
+
+    // Clamp scores ให้อยู่ในช่วง 0 - max_score ของแต่ละ category
+    const criteriaMap = {}
+    ;(criteriaData || []).forEach(c => { criteriaMap[c.category] = c.max_score })
+
+    for (const [key, value] of Object.entries(result.scores)) {
+      const maxAllowed = criteriaMap[key] || 0
+      result.scores[key] = Math.max(0, Math.min(Number(value) || 0, maxAllowed))
+    }
+
     const totalScore = Object.values(result.scores).reduce((a, b) => a + b, 0)
 
     // 6. อัปเดตผลลงตาราง analyses
@@ -144,7 +185,8 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
       .eq('id', analysisId)
 
     if (updateError) {
-      return Response.json({ error: 'บันทึกผลล้มเหลว: ' + updateError.message }, { status: 500 })
+      console.error('Update error:', updateError.message)
+      return Response.json({ error: 'บันทึกผลล้มเหลว' }, { status: 500 })
     }
 
     return Response.json({
@@ -156,6 +198,6 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
 
   } catch (error) {
     console.error('Analyze error:', error)
-    return Response.json({ error: 'เกิดข้อผิดพลาด: ' + error.message }, { status: 500 })
+    return Response.json({ error: 'เกิดข้อผิดพลาดในการวิเคราะห์' }, { status: 500 })
   }
 }

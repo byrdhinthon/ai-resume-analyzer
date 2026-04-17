@@ -30,12 +30,25 @@ export default function AdminCriteriaPage() {
   async function handleSave(id) {
     setSaving(true)
     setMessage(null)
+
+    const maxScore = parseInt(editData.max_score)
+    if (!editData.label?.trim()) {
+      setMessage({ type: 'error', text: 'กรุณากรอกชื่อหมวด' })
+      setSaving(false)
+      return
+    }
+    if (isNaN(maxScore) || maxScore < 0 || maxScore > 100) {
+      setMessage({ type: 'error', text: 'คะแนนเต็มต้องอยู่ระหว่าง 0-100' })
+      setSaving(false)
+      return
+    }
+
     const { error } = await supabase
       .from('scoring_criteria')
       .update({
-        label: editData.label,
-        max_score: parseInt(editData.max_score),
-        description: editData.description,
+        label: editData.label.trim(),
+        max_score: maxScore,
+        description: editData.description?.trim() || '',
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

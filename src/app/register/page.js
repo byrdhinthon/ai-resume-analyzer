@@ -68,7 +68,7 @@ export default function RegisterPage() {
             {t('auth.register')}
           </h1>
           <p style={{ fontSize: 15, color: 'var(--text-gray)', textAlign: 'center', marginBottom: 32 }}>
-            Create your account to get started
+            {t('auth.registerSubtitle')}
           </p>
 
           <div className="card" style={{ borderRadius: 'var(--radius-lg)', padding: 32 }}>

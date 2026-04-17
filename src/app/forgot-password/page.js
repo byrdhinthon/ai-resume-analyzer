@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
             {t('auth.forgotPassword')}
           </h1>
           <p style={{ fontSize: 15, color: 'var(--text-gray)', textAlign: 'center', marginBottom: 32 }}>
-            Enter your email and we'll send you a reset link
+            {t('auth.forgotSubtitle')}
           </p>
 
           <div className="card" style={{ borderRadius: 'var(--radius-lg)', padding: 32 }}>

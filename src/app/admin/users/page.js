@@ -31,8 +31,8 @@ export default function AdminUsersPage() {
     } else {
       const q = search.toLowerCase()
       setFiltered(users.filter(u =>
-        u.username.toLowerCase().includes(q) ||
-        u.email.toLowerCase().includes(q)
+        (u.username || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q)
       ))
     }
     setPage(1)

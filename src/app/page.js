@@ -10,23 +10,24 @@ export default function Home() {
 
   useEffect(() => {
     async function checkAuth() {
-      const { data } = await supabase.auth.getSession()
-      if (data.session) {
-        // ถ้า login อยู่แล้ว → ไป dashboard
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.session.user.id)
-          .single()
-
-        if (profile?.role === 'admin') {
-          router.push('/admin')
-        } else {
-          router.push('/dashboard')
-        }
-      } else {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (error || !user) {
         // ถ้ายังไม่ login → ไปหน้า login
         router.push('/login')
+        return
+      }
+
+      // ถ้า login อยู่แล้ว → ไป dashboard
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.role === 'admin') {
+        router.push('/admin')
+      } else {
+        router.push('/dashboard')
       }
     }
     checkAuth()

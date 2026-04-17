@@ -3,7 +3,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 
 export default function ScoreCard({ label, score, maxScore, icon }) {
   const { t } = useLanguage()
-  const percent = Math.round((score / maxScore) * 100)
+  const percent = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
 
   const getLevel = () => {
     if (percent >= 80) return t('score.excellent')

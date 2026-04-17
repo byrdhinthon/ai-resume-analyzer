@@ -5,7 +5,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 export default function SuggestionCard({ label, suggestion, score, maxScore }) {
   const [open, setOpen] = useState(false)
   const { t } = useLanguage()
-  const percent = Math.round((score / maxScore) * 100)
+  const percent = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
 
   const getColor = () => {
     if (percent >= 80) return '#16A34A'
