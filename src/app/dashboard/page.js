@@ -25,11 +25,7 @@ export default function DashboardPage() {
       if (analyses && analyses.length > 0) {
         const totalScores = analyses.map(a => a.total_score)
         const average = Math.round(totalScores.reduce((a, b) => a + b, 0) / totalScores.length)
-        setStats({
-          count: analyses.length,
-          average: average,
-          latest: analyses[0]
-        })
+        setStats({ count: analyses.length, average, latest: analyses[0] })
       }
       setLoading(false)
     }
@@ -37,78 +33,118 @@ export default function DashboardPage() {
   }, [])
 
   const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600'
-    if (score >= 60) return 'text-yellow-600'
-    return 'text-red-600'
+    if (score >= 80) return '#16A34A'
+    if (score >= 60) return '#D97706'
+    return '#DC2626'
   }
+
   return (
     <AuthLayout requiredRole="member">
-      <h1 className="text-2xl font-bold mb-6">{t('dashboard.title')}</h1>
+      <div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-dark)', marginBottom: 24 }}>
+          {t('dashboard.title')}
+        </h1>
 
-      {loading ? (
-        <p className="text-gray-500">{t('common.loading')}</p>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow-sm border p-6 text-center">
-              <p className="text-sm text-gray-500 mb-1">{t('dashboard.analyzeCount')}</p>
-              <p className="text-3xl font-bold text-blue-600">{stats.count}</p>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border p-6 text-center">
-              <p className="text-sm text-gray-500 mb-1">{t('dashboard.averageScore')}</p>
-              <p className={`text-3xl font-bold ${stats.count > 0 ? getScoreColor(stats.average) : 'text-gray-300'}`}>
-                {stats.count > 0 ? `${stats.average}/100` : '-'}
-              </p>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border p-6 text-center">
-              <p className="text-sm text-gray-500 mb-1">{t('dashboard.latestScore')}</p>
-              <p className={`text-3xl font-bold ${stats.latest ? getScoreColor(stats.latest.total_score) : 'text-gray-300'}`}>
-                {stats.latest ? `${stats.latest.total_score}/100` : '-'}
-              </p>
-            </div>
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
+            <div style={{
+              width: 36, height: 36,
+              border: '3px solid var(--primary-light)',
+              borderTopColor: 'var(--primary)',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite'
+            }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <Link href="/dashboard/analyze" className="block bg-white rounded-lg shadow-sm border p-6 hover:border-blue-300 transition">
-              <h2 className="text-lg font-semibold mb-2 text-blue-600">{t('dashboard.analyzeResume')}</h2>
-              <p className="text-gray-500 text-sm">{t('dashboard.analyzeDesc')}</p>
-            </Link>
-            <Link href="/dashboard/history" className="block bg-white rounded-lg shadow-sm border p-6 hover:border-blue-300 transition">
-              <h2 className="text-lg font-semibold mb-2 text-blue-600">{t('dashboard.historyTitle')}</h2>
-              <p className="text-gray-500 text-sm">{t('dashboard.historyDesc')}</p>
-            </Link>
-          </div>
-
-          {stats.latest && (
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">{t('dashboard.latestResult')}</h2>
-                <Link href={`/dashboard/analyze/${stats.latest.id}`} className="text-sm text-blue-600 hover:underline">
-                  {t('dashboard.viewDetail')}
-                </Link>
-              </div>
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-sm text-gray-600">{t('result.file')}: <strong>{stats.latest.file_name}</strong></p>
-                  <p className="text-sm text-gray-600">{t('result.position')}: <strong>{stats.latest.job_position}</strong></p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(stats.latest.created_at).toLocaleDateString('th-TH', {
-                      year: 'numeric', month: 'long', day: 'numeric',
-                      hour: '2-digit', minute: '2-digit'
-                    })}
+        ) : (
+          <>
+            {/* Stats row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+              {[
+                { label: t('dashboard.analyzeCount'), value: stats.count, color: 'var(--primary)' },
+                { label: t('dashboard.averageScore'), value: stats.count > 0 ? `${stats.average}` : '-', color: stats.count > 0 ? getScoreColor(stats.average) : 'var(--text-light)', sub: stats.count > 0 ? '/100' : '' },
+                { label: t('dashboard.latestScore'), value: stats.latest ? `${stats.latest.total_score}` : '-', color: stats.latest ? getScoreColor(stats.latest.total_score) : 'var(--text-light)', sub: stats.latest ? '/100' : '' },
+              ].map((s, i) => (
+                <div key={i} className="card" style={{ textAlign: 'center', padding: '28px 20px' }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-gray)', marginBottom: 10 }}>{s.label}</p>
+                  <p style={{ fontSize: 36, fontWeight: 700, color: s.color, lineHeight: 1 }}>
+                    {s.value}<span style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-light)' }}>{s.sub}</span>
                   </p>
                 </div>
-                <div className="text-center">
-                  <p className={`text-4xl font-bold ${getScoreColor(stats.latest.total_score)}`}>
-                    {stats.latest.total_score}
-                  </p>
-                  <p className="text-xs text-gray-400">/100</p>
+              ))}
+            </div>
+
+            {/* Quick actions */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
+              <Link href="/dashboard/analyze" style={{ textDecoration: 'none' }}>
+                <div className="card" style={{ padding: 24, cursor: 'pointer', transition: 'box-shadow 0.2s' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
+                    <div className="icon-wrap">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2v6h6M12 18v-6M9 15h6" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--primary)' }}>{t('dashboard.analyzeResume')}</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: 'var(--text-gray)' }}>{t('dashboard.analyzeDesc')}</p>
+                </div>
+              </Link>
+              <Link href="/dashboard/history" style={{ textDecoration: 'none' }}>
+                <div className="card" style={{ padding: 24, cursor: 'pointer', transition: 'box-shadow 0.2s' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
+                    <div className="icon-wrap">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="var(--primary)" strokeWidth="2"/>
+                        <path d="M12 6v6l4 2" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--primary)' }}>{t('dashboard.historyTitle')}</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: 'var(--text-gray)' }}>{t('dashboard.historyDesc')}</p>
+                </div>
+              </Link>
+            </div>
+
+            {/* Latest result */}
+            {stats.latest && (
+              <div className="card" style={{ padding: 24 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-dark)' }}>{t('dashboard.latestResult')}</h2>
+                  <Link
+                    href={`/dashboard/analyze/${stats.latest.id}`}
+                    style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}
+                  >
+                    {t('dashboard.viewDetail')} →
+                  </Link>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <p style={{ fontSize: 14, color: 'var(--text-dark)', fontWeight: 500, marginBottom: 4 }}>
+                      {stats.latest.file_name}
+                    </p>
+                    <p style={{ fontSize: 13, color: 'var(--text-gray)', marginBottom: 4 }}>
+                      {t('result.position')}: <strong style={{ color: 'var(--text-dark)' }}>{stats.latest.job_position}</strong>
+                    </p>
+                    <p style={{ fontSize: 12, color: 'var(--text-light)' }}>
+                      {new Date(stats.latest.created_at).toLocaleDateString('th-TH', {
+                        year: 'numeric', month: 'long', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ fontSize: 48, fontWeight: 700, color: getScoreColor(stats.latest.total_score), lineHeight: 1 }}>
+                      {stats.latest.total_score}
+                    </p>
+                    <p style={{ fontSize: 12, color: 'var(--text-light)' }}>/100</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
+      </div>
     </AuthLayout>
   )
 }

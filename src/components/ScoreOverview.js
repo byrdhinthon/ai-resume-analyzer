@@ -1,13 +1,8 @@
+'use client'
 import { useLanguage } from '@/lib/LanguageContext'
 
-export default function ScoreOverview({ score, label = 'คะแนนรวม' }) {
+export default function ScoreOverview({ score, label }) {
   const { t } = useLanguage()
-
-  const getColor = () => {
-    if (score >= 80) return 'text-green-600'
-    if (score >= 60) return 'text-yellow-600'
-    return 'text-red-600'
-  }
 
   const getLevel = () => {
     if (score >= 80) return t('score.excellent')
@@ -16,18 +11,37 @@ export default function ScoreOverview({ score, label = 'คะแนนรวม
     return t('score.needImprovement')
   }
 
-  const getBgColor = () => {
-    if (score >= 80) return 'bg-green-50 border-green-200'
-    if (score >= 60) return 'bg-yellow-50 border-yellow-200'
-    return 'bg-red-50 border-red-200'
+  const getColor = () => {
+    if (score >= 80) return '#16A34A'
+    if (score >= 60) return '#D97706'
+    return '#DC2626'
   }
+
   return (
-    <div className={`rounded-lg border p-8 text-center ${getBgColor()}`}>
-      <p className="text-sm text-gray-500 mb-2">{label}</p>
-      <p className={`text-6xl font-bold ${getColor()}`}>
-        {score}<span className="text-2xl text-gray-400">/100</span>
+    <div className="card text-center" style={{ padding: '48px 32px' }}>
+      {/* Score circle */}
+      <div style={{
+        width: 140,
+        height: 140,
+        background: 'var(--input-bg)',
+        borderRadius: '50%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '0 auto 24px'
+      }}>
+        <span style={{ fontSize: 52, fontWeight: 700, color: 'var(--text-dark)', lineHeight: 1 }}>
+          {score}
+        </span>
+      </div>
+
+      <p style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-dark)', marginBottom: 8 }}>
+        {getLevel()}
       </p>
-      <p className={`text-lg mt-2 font-medium ${getColor()}`}>{getLevel()}</p>
+      <p style={{ fontSize: 14, color: 'var(--text-gray)' }}>
+        {label || t('result.totalScore')}
+      </p>
     </div>
   )
 }

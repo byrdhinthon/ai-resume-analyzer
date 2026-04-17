@@ -8,15 +8,13 @@ import SuggestionCard from '@/components/SuggestionCard'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 
-
-
 export default function AnalysisResultPage({ params }) {
   const { id } = use(params)
+  const { t } = useLanguage()
   const [analysis, setAnalysis] = useState(null)
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState('')
-  const { t } = useLanguage()
 
   const categories = [
     { key: 'contact_info', label: t('result.contactInfo'), max: 10 },
@@ -25,35 +23,25 @@ export default function AnalysisResultPage({ params }) {
     { key: 'education', label: t('result.education'), max: 10 },
     { key: 'structure', label: t('result.structure'), max: 25 }
   ]
-  
-  useEffect(() => {
-    loadAnalysis()
-  }, [id])
+
+  useEffect(() => { loadAnalysis() }, [id])
 
   async function loadAnalysis() {
     const { data, error } = await supabase
-      .from('analyses')
-      .select('*')
-      .eq('id', id)
-      .single()
+      .from('analyses').select('*').eq('id', id).single()
 
     if (error || !data) {
-      setError('ไม่พบข้อมูลการวิเคราะห์')
+      setError(t('result.notFound') || 'ไม่พบข้อมูลการวิเคราะห์')
       setLoading(false)
       return
     }
-
     setAnalysis(data)
     setLoading(false)
-
-    if (data.status === 'pending') {
-      startAnalysis(data)
-    }
+    if (data.status === 'pending') startAnalysis(data)
   }
 
   async function startAnalysis(data) {
     setAnalyzing(true)
-
     const { data: { session } } = await supabase.auth.getSession()
     const response = await fetch('/api/analyze', {
       method: 'POST',
@@ -70,13 +58,11 @@ export default function AnalysisResultPage({ params }) {
     })
 
     const result = await response.json()
-
     if (!response.ok) {
-      setError(result.error || 'วิเคราะห์ล้มเหลว')
+      setError(result.error || t('analyze.failed') || 'วิเคราะห์ล้มเหลว')
       setAnalyzing(false)
       return
     }
-
     await loadAnalysis()
     setAnalyzing(false)
   }
@@ -84,7 +70,16 @@ export default function AnalysisResultPage({ params }) {
   if (loading) {
     return (
       <AuthLayout requiredRole="member">
-        <p className="text-center text-gray-500 mt-10">{t('common.loading')}</p>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}>
+          <div style={{
+            width: 40, height: 40,
+            border: '3px solid var(--primary-light)',
+            borderTopColor: 'var(--primary)',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite'
+          }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+        </div>
       </AuthLayout>
     )
   }
@@ -92,9 +87,9 @@ export default function AnalysisResultPage({ params }) {
   if (error) {
     return (
       <AuthLayout requiredRole="member">
-        <div className="text-center mt-10">
-          <p className="text-red-500 mb-4">{error}</p>
-          <Link href="/dashboard/analyze" className="text-blue-600 hover:underline">
+        <div style={{ textAlign: 'center', marginTop: 60 }}>
+          <p style={{ color: '#DC2626', marginBottom: 16, fontSize: 15 }}>{error}</p>
+          <Link href="/dashboard/analyze" className="btn-primary" style={{ textDecoration: 'none', padding: '12px 24px', fontSize: 14 }}>
             {t('result.newAnalysis')}
           </Link>
         </div>
@@ -105,33 +100,57 @@ export default function AnalysisResultPage({ params }) {
   return (
     <AuthLayout requiredRole="member">
       {analyzing ? (
-        <div className="text-center mt-20">
-          <div className="inline-block w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-xl font-medium text-gray-700">{t('analyze.analyzing')}</p>
-          <p className="text-sm text-gray-500 mt-2">{t('analyze.analyzingWait')}</p>
+        /* Analyzing state */
+        <div style={{ textAlign: 'center', marginTop: 80 }}>
+          <div style={{
+            width: 80, height: 80, background: 'var(--primary-light)',
+            borderRadius: '50%', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', margin: '0 auto 24px'
+          }}>
+            <div style={{
+              width: 40, height: 40,
+              border: '4px solid var(--primary)',
+              borderTopColor: 'transparent',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite'
+            }} />
+          </div>
+          <p style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-dark)', marginBottom: 8 }}>
+            {t('analyze.analyzing')}
+          </p>
+          <p style={{ fontSize: 14, color: 'var(--text-gray)' }}>{t('analyze.analyzingWait')}</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
         </div>
       ) : analysis.status === 'completed' ? (
-        <div className="max-w-4xl">
+        <div>
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">{t('result.title')}</h1>
-            <div className="flex gap-3">
-              <Link href="/dashboard/history" className="text-sm text-gray-600 hover:underline">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-dark)' }}>
+              {t('result.title')}
+            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Link href="/dashboard/history" className="btn-secondary" style={{ textDecoration: 'none', padding: '8px 18px', fontSize: 13 }}>
                 {t('result.allHistory')}
               </Link>
-              <Link href="/dashboard/analyze" className="text-sm text-blue-600 hover:underline">
+              <Link href="/dashboard/analyze" className="btn-primary" style={{ textDecoration: 'none', padding: '8px 18px', fontSize: 13 }}>
                 {t('result.newAnalysis')}
               </Link>
             </div>
           </div>
 
-          {/* ข้อมูลไฟล์ */}
-          <div className="bg-white rounded-lg shadow-sm border p-4 mb-6 flex justify-between items-center">
+          {/* File info */}
+          <div className="card" style={{ padding: '16px 20px', marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
             <div>
-              <p className="text-sm text-gray-600">{t('result.file')}: <strong>{analysis.file_name}</strong></p>
-              <p className="text-sm text-gray-600">{t('result.position')}: <strong>{analysis.job_position}</strong></p>
+              <p style={{ fontSize: 14, color: 'var(--text-dark)', marginBottom: 2 }}>
+                <span style={{ color: 'var(--text-gray)' }}>{t('result.file')}: </span>
+                <strong>{analysis.file_name}</strong>
+              </p>
+              <p style={{ fontSize: 14, color: 'var(--text-dark)' }}>
+                <span style={{ color: 'var(--text-gray)' }}>{t('result.position')}: </span>
+                <strong>{analysis.job_position}</strong>
+              </p>
             </div>
-            <p className="text-xs text-gray-400">
+            <p style={{ fontSize: 12, color: 'var(--text-light)' }}>
               {new Date(analysis.created_at).toLocaleDateString('th-TH', {
                 year: 'numeric', month: 'long', day: 'numeric',
                 hour: '2-digit', minute: '2-digit'
@@ -139,33 +158,41 @@ export default function AnalysisResultPage({ params }) {
             </p>
           </div>
 
-          {/* คะแนนรวม */}
-          <div className="mb-6">
+          {/* Total score */}
+          <div style={{ marginBottom: 24 }}>
             <ScoreOverview score={analysis.total_score} label={t('result.totalScore')} />
           </div>
 
-          {/* คะแนนแต่ละหมวด */}
-          <h2 className="text-lg font-bold mb-3">{t('result.categoryScores')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          {/* Category scores */}
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-dark)', marginBottom: 14 }}>
+            {t('result.categoryScores')}
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14, marginBottom: 24 }}>
             {categories.map(({ key, label, max }) => (
-              <ScoreCard
-                key={key}
-                label={label}
-                score={analysis.scores?.[key] || 0}
-                maxScore={max}
-              />
+              <ScoreCard key={key} label={label} score={analysis.scores?.[key] || 0} maxScore={max} />
             ))}
           </div>
 
-          {/* สรุปภาพรวม */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-            <h2 className="text-lg font-bold text-blue-800 mb-2">{t('result.summary')}</h2>
-            <p className="text-gray-700 leading-relaxed">{analysis.suggestions?.summary}</p>
+          {/* Summary */}
+          <div style={{
+            background: 'var(--primary-light)',
+            borderRadius: 'var(--radius-md)',
+            padding: '20px 24px',
+            marginBottom: 24
+          }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary)', marginBottom: 10 }}>
+              💡 {t('result.summary')}
+            </h2>
+            <p style={{ fontSize: 14, color: 'var(--text-dark)', lineHeight: 1.7 }}>
+              {analysis.suggestions?.summary}
+            </p>
           </div>
 
-          {/* คำแนะนำแต่ละหมวด */}
-          <h2 className="text-lg font-bold mb-3">{t('result.suggestions')}</h2>
-          <div className="space-y-3 mb-8">
+          {/* Suggestions per category */}
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-dark)', marginBottom: 14 }}>
+            {t('result.suggestions')}
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
             {categories.map(({ key, label, max }) => (
               <SuggestionCard
                 key={key}
@@ -178,9 +205,9 @@ export default function AnalysisResultPage({ params }) {
           </div>
         </div>
       ) : (
-        <div className="text-center mt-10">
-          <p className="text-red-500 mb-4">Analysis failed</p>
-          <Link href="/dashboard/analyze" className="text-blue-600 hover:underline">
+        <div style={{ textAlign: 'center', marginTop: 60 }}>
+          <p style={{ color: '#DC2626', marginBottom: 16 }}>{t('analyze.failed') || 'Analysis failed'}</p>
+          <Link href="/dashboard/analyze" className="btn-primary" style={{ textDecoration: 'none', padding: '12px 24px', fontSize: 14 }}>
             {t('result.newAnalysis')}
           </Link>
         </div>

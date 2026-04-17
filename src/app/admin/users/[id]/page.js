@@ -7,29 +7,19 @@ import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AdminUserDetailPage({ params }) {
   const { id } = use(params)
+  const { t } = useLanguage()
   const [profile, setProfile] = useState(null)
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading] = useState(true)
-  const { t } = useLanguage()
 
   useEffect(() => {
     async function loadData() {
-      // ดึง profile
       const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', id)
-        .single()
-
+        .from('profiles').select('*').eq('id', id).single()
       setProfile(profileData)
 
-      // ดึงประวัติการวิเคราะห์ของ user นี้
       const { data: analysesData } = await supabase
-        .from('analyses')
-        .select('*')
-        .eq('user_id', id)
-        .order('created_at', { ascending: false })
-
+        .from('analyses').select('*').eq('user_id', id).order('created_at', { ascending: false })
       setAnalyses(analysesData || [])
       setLoading(false)
     }
@@ -40,20 +30,31 @@ export default function AdminUserDetailPage({ params }) {
   const averageScore = completedAnalyses.length > 0
     ? Math.round(completedAnalyses.reduce((sum, a) => sum + a.total_score, 0) / completedAnalyses.length)
     : 0
+  const jobPositions = [...new Set(analyses.map(a => a.job_position))]
 
   const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600'
-    if (score >= 60) return 'text-yellow-600'
-    return 'text-red-600'
+    if (score >= 80) return '#16A34A'
+    if (score >= 60) return '#D97706'
+    return '#DC2626'
   }
 
-  // รวมตำแหน่งงานที่เคยกรอก
-  const jobPositions = [...new Set(analyses.map(a => a.job_position))]
+  const getStatusStyle = (status) => {
+    if (status === 'completed') return { bg: '#DCFCE7', color: '#16A34A', text: t('admin.userDetail.completed') }
+    if (status === 'pending') return { bg: '#FEF3C7', color: '#D97706', text: t('admin.userDetail.pending') }
+    return { bg: '#FEE2E2', color: '#DC2626', text: t('admin.userDetail.failed') }
+  }
 
   if (loading) {
     return (
       <AuthLayout requiredRole="admin">
-        <p className="text-gray-500">{t('common.loading')}</p>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}>
+          <div style={{
+            width: 36, height: 36, border: '3px solid var(--primary-light)',
+            borderTopColor: 'var(--primary)', borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite'
+          }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+        </div>
       </AuthLayout>
     )
   }
@@ -61,9 +62,9 @@ export default function AdminUserDetailPage({ params }) {
   if (!profile) {
     return (
       <AuthLayout requiredRole="admin">
-        <p className="text-red-500">{t('admin.userDetail.notFound')}</p>
-        <Link href="/admin/users" className="text-blue-600 hover:underline mt-4 inline-block">
-          {t('admin.userDetail.back')}
+        <p style={{ color: '#DC2626', marginBottom: 16 }}>{t('admin.userDetail.notFound')}</p>
+        <Link href="/admin/users" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
+          ← {t('admin.userDetail.back')}
         </Link>
       </AuthLayout>
     )
@@ -71,122 +72,155 @@ export default function AdminUserDetailPage({ params }) {
 
   return (
     <AuthLayout requiredRole="admin">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/admin/users" className="text-gray-400 hover:text-gray-600">
-          {t('admin.userDetail.back')}
-        </Link>
-        <h1 className="text-2xl font-bold">{t('admin.userDetail.title')}</h1>
-      </div>
+      <div>
+        {/* Back + Title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <Link href="/admin/users" style={{ fontSize: 13, color: 'var(--text-gray)', textDecoration: 'none' }}>
+            ← {t('admin.userDetail.back')}
+          </Link>
+          <span style={{ color: 'var(--border)' }}>|</span>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-dark)' }}>
+            {t('admin.userDetail.title')}
+          </h1>
+        </div>
 
-      {/* ข้อมูลผู้ใช้ */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-gray-500">{t('admin.userDetail.username')}</p>
-            <p className="font-medium">{profile.username}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">{t('admin.userDetail.email')}</p>
-            <p className="font-medium">{profile.email}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">{t('admin.userDetail.role')}</p>
-            <span className={`text-xs px-2 py-1 rounded-full ${profile.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-              }`}>
-              {profile.role}
-            </span>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">{t('admin.userDetail.date')}</p>
-            <p className="font-medium">
-              {new Date(profile.created_at).toLocaleDateString('th-TH', {
-                year: 'numeric', month: 'long', day: 'numeric'
-              })}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* สถิติ */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-          <p className="text-sm text-gray-500">{t('admin.userDetail.analyzeCount')}</p>
-          <p className="text-2xl font-bold text-blue-600">{completedAnalyses.length}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-          <p className="text-sm text-gray-500">{t('admin.userDetail.averageScore')}</p>
-          <p className={`text-2xl font-bold ${completedAnalyses.length > 0 ? getScoreColor(averageScore) : 'text-gray-300'}`}>
-            {completedAnalyses.length > 0 ? `${averageScore}/100` : '-'}
-          </p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-          <p className="text-sm text-gray-500">{t('admin.userDetail.interestedPositions')}</p>
-          <p className="text-2xl font-bold text-blue-600">{jobPositions.length}</p>
-        </div>
-      </div>
-
-      {/* ตำแหน่งงานที่เคยกรอก */}
-      {jobPositions.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-3">{t('admin.userDetail.pastPositions')}</h2>
-          <div className="flex flex-wrap gap-2">
-            {jobPositions.map((pos) => (
-              <span key={pos} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-                {pos}
-              </span>
+        {/* Profile card */}
+        <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            {[
+              { label: t('admin.userDetail.username'), value: profile.username },
+              { label: t('admin.userDetail.email'), value: profile.email },
+              {
+                label: t('admin.userDetail.role'),
+                value: null,
+                badge: profile.role,
+                badgeStyle: {
+                  background: profile.role === 'admin' ? '#F3E8FF' : 'var(--primary-light)',
+                  color: profile.role === 'admin' ? '#7C3AED' : 'var(--primary)'
+                }
+              },
+              {
+                label: t('admin.userDetail.date'),
+                value: new Date(profile.created_at).toLocaleDateString('th-TH', {
+                  year: 'numeric', month: 'long', day: 'numeric'
+                })
+              }
+            ].map((f, i) => (
+              <div key={i}>
+                <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 4 }}>{f.label}</p>
+                {f.badge ? (
+                  <span style={{
+                    fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 99,
+                    ...f.badgeStyle
+                  }}>{f.badge}</span>
+                ) : (
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)' }}>{f.value}</p>
+                )}
+              </div>
             ))}
           </div>
         </div>
-      )}
 
-      {/* ประวัติการวิเคราะห์ */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <h2 className="text-lg font-semibold p-4 border-b">{t('admin.userDetail.history')}</h2>
-        {analyses.length === 0 ? (
-          <p className="text-gray-500 text-center p-6">{t('admin.userDetail.noHistory')}</p>
-        ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.date')}</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.file')}</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.position')}</th>
-                <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">{t('history.score')}</th>
-                <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">{t('history.status')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analyses.map((item) => (
-                <tr key={item.id} className="border-b last:border-b-0">
-                  <td className="px-4 py-3 text-sm text-gray-500">
-                    {new Date(item.created_at).toLocaleDateString('th-TH', {
-                      year: 'numeric', month: 'short', day: 'numeric',
-                      hour: '2-digit', minute: '2-digit'
-                    })}
-                  </td>
-                  <td className="px-4 py-3 text-sm">{item.file_name}</td>
-                  <td className="px-4 py-3 text-sm">{item.job_position}</td>
-                  <td className="px-4 py-3 text-center">
-                    {item.total_score !== null ? (
-                      <span className={`font-bold ${getScoreColor(item.total_score)}`}>
-                        {item.total_score}/100
-                      </span>
-                    ) : '-'}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <span className={`text-xs px-2 py-1 rounded-full ${item.status === 'completed' ? 'bg-green-100 text-green-700' :
-                        item.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                      }`}>
-                      {item.status === 'completed' ? t('admin.userDetail.completed') :
-                        item.status === 'pending' ? t('admin.userDetail.pending') : t('admin.userDetail.failed')}
-                    </span>
-                  </td>
-                </tr>
+        {/* Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
+          {[
+            { label: t('admin.userDetail.analyzeCount'), value: completedAnalyses.length, color: 'var(--primary)' },
+            {
+              label: t('admin.userDetail.averageScore'),
+              value: completedAnalyses.length > 0 ? `${averageScore}` : '-',
+              sub: completedAnalyses.length > 0 ? '/100' : '',
+              color: completedAnalyses.length > 0 ? getScoreColor(averageScore) : 'var(--text-light)'
+            },
+            { label: t('admin.userDetail.interestedPositions'), value: jobPositions.length, color: 'var(--primary)' },
+          ].map((s, i) => (
+            <div key={i} className="card" style={{ textAlign: 'center', padding: '20px 16px' }}>
+              <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 8 }}>{s.label}</p>
+              <p style={{ fontSize: 28, fontWeight: 700, color: s.color, lineHeight: 1 }}>
+                {s.value}<span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-light)' }}>{s.sub}</span>
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Past positions */}
+        {jobPositions.length > 0 && (
+          <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)', marginBottom: 12 }}>
+              {t('admin.userDetail.pastPositions')}
+            </h2>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {jobPositions.map(pos => (
+                <span key={pos} style={{
+                  fontSize: 12, padding: '4px 12px', borderRadius: 99,
+                  background: 'var(--input-bg)', color: 'var(--text-gray)',
+                  border: '1px solid var(--border)'
+                }}>
+                  {pos}
+                </span>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         )}
+
+        {/* History table */}
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+            {t('admin.userDetail.history')}
+          </h2>
+          {analyses.length === 0 ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-gray)', padding: '40px 20px', fontSize: 14 }}>
+              {t('admin.userDetail.noHistory')}
+            </p>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  {[t('history.date'), t('history.file'), t('history.position'), t('history.score'), t('history.status')].map((h, i) => (
+                    <th key={i} style={{
+                      textAlign: i >= 3 ? 'center' : 'left',
+                      padding: '12px 16px', fontSize: 12, fontWeight: 600,
+                      color: 'var(--text-gray)', background: 'var(--input-bg)'
+                    }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {analyses.map(item => {
+                  const s = getStatusStyle(item.status)
+                  return (
+                    <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '12px 16px', fontSize: 12, color: 'var(--text-gray)' }}>
+                        {new Date(item.created_at).toLocaleDateString('th-TH', {
+                          year: 'numeric', month: 'short', day: 'numeric',
+                          hour: '2-digit', minute: '2-digit'
+                        })}
+                      </td>
+                      <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-dark)' }}>
+                        {item.file_name}
+                      </td>
+                      <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-dark)' }}>
+                        {item.job_position}
+                      </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                        {item.total_score !== null ? (
+                          <span style={{ fontSize: 13, fontWeight: 700, color: getScoreColor(item.total_score) }}>
+                            {item.total_score}/100
+                          </span>
+                        ) : <span style={{ color: 'var(--text-light)' }}>—</span>}
+                      </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                        <span style={{
+                          fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 99,
+                          background: s.bg, color: s.color
+                        }}>{s.text}</span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </AuthLayout>
   )

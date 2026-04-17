@@ -15,11 +15,7 @@ export default function AuthLayout({ children, requiredRole }) {
   useEffect(() => {
     async function checkAuth() {
       const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
+      if (!user) { router.push('/login'); return }
 
       const { data } = await supabase
         .from('profiles')
@@ -27,18 +23,10 @@ export default function AuthLayout({ children, requiredRole }) {
         .eq('id', user.id)
         .single()
 
-      if (!data) {
-        router.push('/login')
-        return
-      }
+      if (!data) { router.push('/login'); return }
 
-      // ถ้าต้องการ role เฉพาะ แต่ user ไม่ใช่ role นั้น
       if (requiredRole && data.role !== requiredRole) {
-        if (data.role === 'admin') {
-          router.push('/admin')
-        } else {
-          router.push('/dashboard')
-        }
+        router.push(data.role === 'admin' ? '/admin' : '/dashboard')
         return
       }
 
@@ -50,18 +38,25 @@ export default function AuthLayout({ children, requiredRole }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg text-gray-500">{t('common.loading')}</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+        <div style={{
+          width: 40, height: 40,
+          border: '3px solid var(--primary-light)',
+          borderTopColor: 'var(--primary)',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <Navbar profile={profile} />
       <div className="flex">
         <Sidebar role={profile.role} />
-        <main className="flex-1 p-4 md:p-6 min-w-0 pl-12 md:pl-6 pt-4 md:pt-6">
+        <main className="flex-1 p-6 min-w-0" style={{ maxWidth: '100%' }}>
           {children}
         </main>
       </div>

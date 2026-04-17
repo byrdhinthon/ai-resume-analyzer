@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 
 export default function HistoryPage() {
+  const { t } = useLanguage()
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -27,144 +28,176 @@ export default function HistoryPage() {
   }, [])
 
   const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600'
-    if (score >= 60) return 'text-yellow-600'
-    return 'text-red-600'
+    if (score >= 80) return '#16A34A'
+    if (score >= 60) return '#D97706'
+    return '#DC2626'
   }
 
-  const { t } = useLanguage()
-
-  const getStatusLabel = (status) => {
-    if (status === 'completed') return { text: t('history.completed'), color: 'bg-green-100 text-green-700' }
-    if (status === 'pending') return { text: t('history.pending'), color: 'bg-yellow-100 text-yellow-700' }
-    return { text: t('history.failed'), color: 'bg-red-100 text-red-700' }
+  const getStatusStyle = (status) => {
+    if (status === 'completed') return { text: t('history.completed'), bg: '#DCFCE7', color: '#16A34A' }
+    if (status === 'pending') return { text: t('history.pending'), bg: '#FEF3C7', color: '#D97706' }
+    return { text: t('history.failed'), bg: '#FEE2E2', color: '#DC2626' }
   }
+
   return (
     <AuthLayout requiredRole="member">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{t('history.title')}</h1>
-        <Link
-          href="/dashboard/analyze"
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-        >
-          {t('history.newAnalysis')}
-        </Link>
-      </div>
-
-      {loading ? (
-        <p className="text-center text-gray-500 mt-10">{t('common.loading')}</p>
-      ) : analyses.length === 0 ? (
-        <div className="text-center mt-10 bg-white rounded-lg border p-8">
-          <p className="text-gray-500 mb-4">{t('history.empty')}</p>
-          <Link
-            href="/dashboard/analyze"
-            className="text-blue-600 hover:underline"
-          >
-            {t('history.startNow')}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-dark)' }}>
+            {t('history.title')}
+          </h1>
+          <Link href="/dashboard/analyze" className="btn-primary" style={{ textDecoration: 'none', padding: '10px 20px', fontSize: 14 }}>
+            + {t('history.newAnalysis')}
           </Link>
         </div>
-      ) : (
-        <>
-          {/* ตารางบนจอใหญ่ */}
-          <div className="hidden md:block bg-white rounded-lg shadow-sm border overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.date')}</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.file')}</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-gray-600">{t('history.position')}</th>
-                  <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">{t('history.score')}</th>
-                  <th className="text-center px-4 py-3 text-sm font-medium text-gray-600">{t('history.status')}</th>
-                  <th className="text-center px-4 py-3 text-sm font-medium text-gray-600"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {analyses.map((item) => {
-                  const status = getStatusLabel(item.status)
-                  return (
-                    <tr key={item.id} className="border-b last:border-b-0 hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-600">
+
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
+            <div style={{
+              width: 36, height: 36,
+              border: '3px solid var(--primary-light)',
+              borderTopColor: 'var(--primary)',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite'
+            }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+          </div>
+        ) : analyses.length === 0 ? (
+          <div className="card" style={{ textAlign: 'center', padding: '60px 32px' }}>
+            <div style={{
+              width: 64, height: 64, background: 'var(--primary-light)',
+              borderRadius: '50%', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', margin: '0 auto 20px'
+            }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M14 2v6h6" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <p style={{ fontSize: 15, color: 'var(--text-gray)', marginBottom: 20 }}>{t('history.empty')}</p>
+            <Link href="/dashboard/analyze" className="btn-primary" style={{ textDecoration: 'none', padding: '12px 28px', fontSize: 14 }}>
+              {t('history.startNow')}
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* Desktop table */}
+            <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'none' }} id="desktop-table">
+              <style>{`@media (min-width: 768px) { #desktop-table { display: block !important; } #mobile-cards { display: none !important; } }`}</style>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                    {[t('history.date'), t('history.file'), t('history.position'), t('history.score'), t('history.status'), ''].map((h, i) => (
+                      <th key={i} style={{
+                        textAlign: i >= 3 ? 'center' : 'left',
+                        padding: '14px 16px',
+                        fontSize: 13, fontWeight: 600,
+                        color: 'var(--text-gray)',
+                        background: 'var(--input-bg)'
+                      }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {analyses.map((item) => {
+                    const s = getStatusStyle(item.status)
+                    return (
+                      <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                        <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-gray)' }}>
+                          {new Date(item.created_at).toLocaleDateString('th-TH', {
+                            year: 'numeric', month: 'short', day: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                          })}
+                        </td>
+                        <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.file_name}
+                        </td>
+                        <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)' }}>
+                          {item.job_position}
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                          {item.total_score !== null ? (
+                            <span style={{ fontSize: 14, fontWeight: 700, color: getScoreColor(item.total_score) }}>
+                              {item.total_score}/100
+                            </span>
+                          ) : (
+                            <span style={{ color: 'var(--text-light)' }}>—</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                          <span style={{
+                            fontSize: 12, fontWeight: 500,
+                            padding: '4px 10px', borderRadius: 99,
+                            background: s.bg, color: s.color
+                          }}>
+                            {s.text}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                          {item.status === 'completed' && (
+                            <Link
+                              href={`/dashboard/analyze/${item.id}`}
+                              style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}
+                            >
+                              {t('history.viewDetail')}
+                            </Link>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div id="mobile-cards" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {analyses.map((item) => {
+                const s = getStatusStyle(item.status)
+                return (
+                  <div key={item.id} className="card" style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)', marginBottom: 2 }}>{item.job_position}</p>
+                        <p style={{ fontSize: 12, color: 'var(--text-gray)' }}>{item.file_name}</p>
+                      </div>
+                      <span style={{
+                        fontSize: 11, fontWeight: 500,
+                        padding: '3px 8px', borderRadius: 99,
+                        background: s.bg, color: s.color, flexShrink: 0, marginLeft: 8
+                      }}>
+                        {s.text}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <p style={{ fontSize: 12, color: 'var(--text-light)' }}>
                         {new Date(item.created_at).toLocaleDateString('th-TH', {
-                          year: 'numeric', month: 'short', day: 'numeric',
-                          hour: '2-digit', minute: '2-digit'
+                          year: 'numeric', month: 'short', day: 'numeric'
                         })}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-800">{item.file_name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-800">{item.job_position}</td>
-                      <td className="px-4 py-3 text-center">
-                        {item.total_score !== null ? (
-                          <span className={`font-bold ${getScoreColor(item.total_score)}`}>
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        {item.total_score !== null && (
+                          <span style={{ fontSize: 14, fontWeight: 700, color: getScoreColor(item.total_score) }}>
                             {item.total_score}/100
                           </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
                         )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-xs px-2 py-1 rounded-full ${status.color}`}>
-                          {status.text}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
                         {item.status === 'completed' && (
                           <Link
                             href={`/dashboard/analyze/${item.id}`}
-                            className="text-sm text-blue-600 hover:underline"
+                            style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}
                           >
                             {t('history.viewDetail')}
                           </Link>
                         )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Card บนมือถือ */}
-          <div className="md:hidden space-y-3">
-            {analyses.map((item) => {
-              const status = getStatusLabel(item.status)
-              return (
-                <div key={item.id} className="bg-white rounded-lg shadow-sm border p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{item.job_position}</p>
-                      <p className="text-xs text-gray-500">{item.file_name}</p>
-                    </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${status.color}`}>
-                      {status.text}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center mt-3">
-                    <p className="text-xs text-gray-400">
-                      {new Date(item.created_at).toLocaleDateString('th-TH', {
-                        year: 'numeric', month: 'short', day: 'numeric'
-                      })}
-                    </p>
-                    <div className="flex items-center gap-3">
-                      {item.total_score !== null && (
-                        <span className={`font-bold ${getScoreColor(item.total_score)}`}>
-                          {item.total_score}/100
-                        </span>
-                      )}
-                      {item.status === 'completed' && (
-                        <Link
-                          href={`/dashboard/analyze/${item.id}`}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          {t('history.viewDetail')}
-                        </Link>
-                      )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        </>
-      )}
+                )
+              })}
+            </div>
+          </>
+        )}
+      </div>
     </AuthLayout>
   )
 }

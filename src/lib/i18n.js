@@ -85,6 +85,9 @@ const translations = {
     'result.suggestions': 'คำแนะนำการปรับปรุง',
     'result.file': 'ไฟล์',
     'result.position': 'ตำแหน่งงาน',
+    'result.notFound': 'ไม่พบข้อมูลการวิเคราะห์',
+    'result.suggestion': '💡 คำแนะนำ',
+    'analyze.failed': 'วิเคราะห์ล้มเหลว',
 
     // Score levels
     'score.excellent': 'ดีมาก',
@@ -290,6 +293,9 @@ const translations = {
     'result.suggestions': 'Improvement Suggestions',
     'result.file': 'File',
     'result.position': 'Position',
+    'result.notFound': 'Analysis not found',
+    'result.suggestion': '💡 Suggestion',
+    'analyze.failed': 'Analysis failed',
 
     // Score levels
     'score.excellent': 'Excellent',
@@ -314,7 +320,7 @@ const translations = {
 
     // Common
     'common.loading': 'Loading...',
-    'common.back': '← Back',
+    'common.back': 'Back',
     'common.save': 'Save',
     'common.cancel': 'Cancel',
     'common.edit': 'Edit',
@@ -369,7 +375,7 @@ const translations = {
     'admin.userDetail.history': 'Analysis History',
     'admin.userDetail.noHistory': 'No history yet',
     'admin.userDetail.notFound': 'User not found',
-    'admin.userDetail.back': '← Back',
+    'admin.userDetail.back': 'Back',
     'admin.userDetail.completed': 'Completed',
     'admin.userDetail.pending': 'Pending',
     'admin.userDetail.failed': 'Failed',
