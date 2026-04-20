@@ -41,7 +41,7 @@ export async function POST(request) {
     const { analysisId, fileUrl: filePath, fileName, jobPosition } = await request.json()
 
     // ตรวจสอบ input
-    if (!analysisId || typeof analysisId !== 'string') {
+    if (!analysisId && analysisId !== 0) {
       return Response.json({ error: 'Invalid analysis ID' }, { status: 400 })
     }
     if (!filePath || typeof filePath !== 'string') {
