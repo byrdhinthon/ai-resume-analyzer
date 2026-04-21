@@ -115,7 +115,7 @@ export default function DashboardPage() {
                     href={`/dashboard/analyze/${stats.latest.id}`}
                     style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}
                   >
-                    {t('dashboard.viewDetail')} →
+                    {t('dashboard.viewDetail')}
                   </Link>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

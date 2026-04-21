@@ -14,8 +14,9 @@ export default function SuggestionCard({ label, suggestion, score, maxScore }) {
   }
 
   const getLevelText = () => {
-    if (percent >= 80) return t('score.good')
-    if (percent >= 60) return t('score.fair')
+    if (percent >= 80) return t('score.excellent')
+    if (percent >= 60) return t('score.good')
+    if (percent >= 40) return t('score.fair')
     return t('score.needImprovement')
   }
 
