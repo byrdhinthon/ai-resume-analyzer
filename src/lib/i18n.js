@@ -59,7 +59,7 @@ const translations = {
     'analyze.selectPosition': 'ตำแหน่งงานที่ต้องการสมัคร',
     'analyze.fromList': 'เลือกจากรายการ',
     'analyze.custom': 'กรอกเอง',
-    'analyze.selectPlaceholder': '-- เลือกตำแหน่งงาน --',
+    'analyze.selectPlaceholder': '  เลือกตำแหน่งงาน ',
     'analyze.customPlaceholder': 'กรอกตำแหน่งงานในสายงาน IT',
     'analyze.upload': 'อัปโหลดเรซูเม่',
     'analyze.clickToSelect': 'คลิกเพื่อเลือกไฟล์',
@@ -86,7 +86,7 @@ const translations = {
     'result.file': 'ไฟล์',
     'result.position': 'ตำแหน่งงาน',
     'result.notFound': 'ไม่พบข้อมูลการวิเคราะห์',
-    'result.suggestion': '💡 คำแนะนำ',
+    'result.suggestion': 'คำแนะนำ',
     'analyze.failed': 'วิเคราะห์ล้มเหลว',
 
     // Score levels
@@ -112,7 +112,7 @@ const translations = {
 
     // Common
     'common.loading': 'กำลังโหลด...',
-    'common.back': '← กลับ',
+    'common.back': 'กลับ',
     'common.save': 'บันทึก',
     'common.cancel': 'ยกเลิก',
     'common.edit': 'แก้ไข',
@@ -150,6 +150,7 @@ const translations = {
     'admin.users.role': 'สถานะ',
     'admin.users.date': 'วันที่สมัคร',
     'admin.users.detail': 'ดูรายละเอียด',
+    'admin.users.detailHeader': 'รายละเอียด',
     'admin.users.notFound': 'ไม่พบผู้ใช้งาน',
     'admin.users.prev': 'ก่อนหน้า',
     'admin.users.next': 'ถัดไป',
@@ -167,7 +168,7 @@ const translations = {
     'admin.userDetail.history': 'ประวัติการวิเคราะห์',
     'admin.userDetail.noHistory': 'ยังไม่มีประวัติ',
     'admin.userDetail.notFound': 'ไม่พบข้อมูลผู้ใช้',
-    'admin.userDetail.back': '← กลับ',
+    'admin.userDetail.back': 'กลับ',
     'admin.userDetail.completed': 'เสร็จสิ้น',
     'admin.userDetail.pending': 'รอวิเคราะห์',
     'admin.userDetail.failed': 'ล้มเหลว',
@@ -299,7 +300,7 @@ const translations = {
     'result.file': 'File',
     'result.position': 'Position',
     'result.notFound': 'Analysis not found',
-    'result.suggestion': '💡 Suggestion',
+    'result.suggestion': 'Suggestion',
     'analyze.failed': 'Analysis failed',
 
     // Score levels
@@ -363,6 +364,7 @@ const translations = {
     'admin.users.role': 'Role',
     'admin.users.date': 'Registered',
     'admin.users.detail': 'View Detail',
+    'admin.users.detailHeader': 'Details',
     'admin.users.notFound': 'No users found',
     'admin.users.prev': 'Previous',
     'admin.users.next': 'Next',

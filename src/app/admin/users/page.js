@@ -87,12 +87,18 @@ export default function AdminUsersPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    {[t('admin.users.username'), t('admin.users.email'), t('admin.users.role'), t('admin.users.date'), ''].map((h, i) => (
+                    {[
+                      { label: t('admin.users.username'), align: 'left' },
+                      { label: t('admin.users.email'), align: 'left' },
+                      { label: t('admin.users.role'), align: 'center' },
+                      { label: t('admin.users.date'), align: 'left' },
+                      { label: t('admin.users.detailHeader'), align: 'center' },
+                    ].map((h, i) => (
                       <th key={i} style={{
-                        textAlign: i >= 2 ? 'center' : 'left',
+                        textAlign: h.align,
                         padding: '14px 16px', fontSize: 13, fontWeight: 600,
                         color: 'var(--text-gray)', background: 'var(--input-bg)'
-                      }}>{h}</th>
+                      }}>{h.label}</th>
                     ))}
                   </tr>
                 </thead>
