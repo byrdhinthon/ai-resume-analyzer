@@ -8,7 +8,9 @@ import { useLanguage } from '@/lib/LanguageContext'
 export default function RegisterPage() {
   const router = useRouter()
   const { t } = useLanguage()
-  const [username, setUsername] = useState('')
+  const [studentId, setStudentId] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -18,6 +20,9 @@ export default function RegisterPage() {
   const handleRegister = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (!studentId.trim()) { setError(t('auth.studentIdRequired')); return }
+    if (!firstName.trim()) { setError(t('auth.firstNameRequired')); return }
 
     if (password !== confirmPassword) {
       setError(t('auth.passwordMismatch'))
@@ -34,7 +39,14 @@ export default function RegisterPage() {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username } }
+      options: {
+        data: {
+          student_id: studentId.trim(),
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          username: `${firstName.trim()} ${lastName.trim()}`
+        }
+      }
     })
 
     if (authError) {
@@ -73,23 +85,62 @@ export default function RegisterPage() {
 
           <div className="card" style={{ borderRadius: 'var(--radius-lg)', padding: 32 }}>
             <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {/* Username */}
+              {/* Student ID */}
               <div>
                 <label style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-dark)', display: 'block', marginBottom: 8 }}>
-                  {t('auth.username')}
+                  {t('auth.studentId')}
                 </label>
                 <div className="input-wrap">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, color: 'var(--text-light)' }}>
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
+                    <rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M2 8h20M8 3v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                   <input
                     type="text"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
+                    value={studentId}
+                    onChange={e => setStudentId(e.target.value)}
                     required
-                    placeholder={t('auth.usernamePlaceholder')}
+                    placeholder={t('auth.studentIdPlaceholder')}
                   />
+                </div>
+              </div>
+
+              {/* First Name + Last Name */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-dark)', display: 'block', marginBottom: 8 }}>
+                    {t('auth.firstName')}
+                  </label>
+                  <div className="input-wrap">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, color: 'var(--text-light)' }}>
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={e => setFirstName(e.target.value)}
+                      required
+                      placeholder={t('auth.firstNamePlaceholder')}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-dark)', display: 'block', marginBottom: 8 }}>
+                    {t('auth.lastName')}
+                  </label>
+                  <div className="input-wrap">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, color: 'var(--text-light)' }}>
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={e => setLastName(e.target.value)}
+                      placeholder={t('auth.lastNamePlaceholder')}
+                    />
+                  </div>
                 </div>
               </div>
 
