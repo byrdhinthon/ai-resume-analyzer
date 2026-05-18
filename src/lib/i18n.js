@@ -199,6 +199,15 @@ const translations = {
     'admin.criteria.saveSuccess': 'บันทึกสำเร็จ',
     'admin.criteria.lastUpdated': 'แก้ไขล่าสุด:',
 
+    'auth.studentId': 'รหัสนักศึกษา',
+    'auth.studentIdPlaceholder': 'เช่น 6501234567',
+    'auth.studentIdRequired': 'กรุณากรอกรหัสนักศึกษา',
+    'auth.firstName': 'ชื่อ',
+    'auth.firstNamePlaceholder': 'กรอกชื่อ',
+    'auth.firstNameRequired': 'กรุณากรอกชื่อ',
+    'auth.lastName': 'นามสกุล',
+    'auth.lastNamePlaceholder': 'กรอกนามสกุล',
+
     'auth.loginSubtitle': 'เข้าสู่ระบบเพื่อวิเคราะห์เรซูเม่ของคุณ',
     'auth.registerSubtitle': 'สร้างบัญชีของคุณเพื่อเริ่มต้นใช้งาน',
     'auth.forgotSubtitle': 'กรอกอีเมลของคุณ เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้',
@@ -439,6 +448,15 @@ const translations = {
     'admin.criteria.saveFailed': 'Save failed: ',
     'admin.criteria.saveSuccess': 'Saved successfully',
     'admin.criteria.lastUpdated': 'Last updated:',
+
+    'auth.studentId': 'Student ID',
+    'auth.studentIdPlaceholder': 'e.g. 6501234567',
+    'auth.studentIdRequired': 'Please enter your student ID',
+    'auth.firstName': 'First Name',
+    'auth.firstNamePlaceholder': 'Enter first name',
+    'auth.firstNameRequired': 'Please enter your first name',
+    'auth.lastName': 'Last Name',
+    'auth.lastNamePlaceholder': 'Enter last name',
 
     'auth.loginSubtitle': 'Sign in to analyze your resume',
     'auth.registerSubtitle': 'Create your account to get started',
