@@ -26,7 +26,9 @@ export default function AuthLayout({ children, requiredRole }) {
       if (!data) { router.push('/login'); return }
 
       if (requiredRole && data.role !== requiredRole) {
-        router.push(data.role === 'admin' ? '/admin' : '/dashboard')
+        if (data.role === 'admin') router.push('/admin')
+        else if (data.role === 'professor') router.push('/professor')
+        else router.push('/dashboard')
         return
       }
 

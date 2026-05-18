@@ -61,7 +61,15 @@ export default function Sidebar({ role }) {
     { href: '/admin/criteria', label: t('sidebar.criteria'), icon: icons.criteria },
   ]
 
-  const links = role === 'admin' ? adminLinks : memberLinks
+  const professorLinks = [
+    { href: '/professor', label: t('sidebar.home'), icon: icons.home },
+    { href: '/professor/analyze', label: t('sidebar.analyze'), icon: icons.upload },
+    { href: '/professor/analyses', label: t('sidebar.history'), icon: icons.history },
+  ]
+
+  const links = role === 'admin' ? adminLinks
+    : role === 'professor' ? professorLinks
+    : memberLinks
 
   return (
     <>
