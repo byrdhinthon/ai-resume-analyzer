@@ -211,6 +211,33 @@ const translations = {
     'auth.changing': 'กำลังเปลี่ยน...',
     'auth.resetSuccess': 'เปลี่ยนรหัสผ่านสำเร็จ!',
     'auth.redirecting': 'กำลังไปหน้าเข้าสู่ระบบ...',
+
+    // Professor
+    'professor.dashboard': 'แดชบอร์ดอาจารย์',
+    'professor.analyzeTitle': 'วิเคราะห์ Resume นักศึกษา',
+    'professor.historyTitle': 'ประวัติการวิเคราะห์ทั้งหมด',
+    'professor.student': 'นักศึกษา',
+    'professor.totalResumes': 'Resume ทั้งหมด',
+    'professor.avgScore': 'คะแนนเฉลี่ย',
+    'professor.studentCount': 'จำนวนนักศึกษา',
+    'professor.batchAnalyze': 'วิเคราะห์ Resume',
+    'professor.batchAnalyzeDesc': 'อัปโหลด Resume หลายไฟล์พร้อมกันเพื่อวิเคราะห์',
+    'professor.viewHistory': 'ดูประวัติทั้งหมด',
+    'professor.viewHistoryDesc': 'ดูผลวิเคราะห์ของนักศึกษาทุกคน',
+    'professor.noHistory': 'ยังไม่มีประวัติการวิเคราะห์',
+    'professor.startNow': 'เริ่มวิเคราะห์ Resume นักศึกษาตอนนี้',
+    'professor.studentId': 'รหัสนักศึกษา',
+
+    // Batch upload
+    'batch.clickToSelect': 'คลิกเพื่อเลือกไฟล์ (หลายไฟล์ได้)',
+    'batch.maxInfo': 'สูงสุด 10 ไฟล์ · ไฟล์ละไม่เกิน 5MB',
+    'batch.maxFiles': 'สูงสุด 10 ไฟล์',
+    'batch.uploading': 'กำลังอัปโหลด...',
+    'batch.analyzing': 'กำลังวิเคราะห์...',
+    'batch.done': 'เสร็จสิ้น',
+    'batch.error': 'ผิดพลาด',
+    'batch.processing': 'กำลังประมวลผล...',
+    'batch.submit': 'อัปโหลดและวิเคราะห์',
   },
 
   en: {
@@ -273,7 +300,7 @@ const translations = {
     'analyze.selectPosition': 'Target Job Position',
     'analyze.fromList': 'Select from list',
     'analyze.custom': 'Custom input',
-    'analyze.selectPlaceholder': '-- Select position --',
+    'analyze.selectPlaceholder': ' Select position',
     'analyze.customPlaceholder': 'Enter IT job position',
     'analyze.upload': 'Upload Resume',
     'analyze.clickToSelect': 'Click to select file',
@@ -425,6 +452,33 @@ const translations = {
     'auth.changing': 'Changing...',
     'auth.resetSuccess': 'Password changed successfully!',
     'auth.redirecting': 'Redirecting to login...',
+
+    // Professor
+    'professor.dashboard': 'Professor Dashboard',
+    'professor.analyzeTitle': 'Analyze Student Resumes',
+    'professor.historyTitle': 'All Analysis History',
+    'professor.student': 'Student',
+    'professor.totalResumes': 'Total Resumes',
+    'professor.avgScore': 'Average Score',
+    'professor.studentCount': 'Total Students',
+    'professor.batchAnalyze': 'Analyze Resumes',
+    'professor.batchAnalyzeDesc': 'Upload multiple resume files for batch analysis',
+    'professor.viewHistory': 'View All History',
+    'professor.viewHistoryDesc': 'View analysis results for all students',
+    'professor.noHistory': 'No analysis history yet',
+    'professor.startNow': 'Start analyzing student resumes now',
+    'professor.studentId': 'Student ID',
+
+    // Batch upload
+    'batch.clickToSelect': 'Click to select files (multiple)',
+    'batch.maxInfo': 'Max 10 files · 5MB each',
+    'batch.maxFiles': 'Maximum 10 files',
+    'batch.uploading': 'Uploading...',
+    'batch.analyzing': 'Analyzing...',
+    'batch.done': 'Done',
+    'batch.error': 'Error',
+    'batch.processing': 'Processing...',
+    'batch.submit': 'Upload & Analyze',
   }
 
 }
