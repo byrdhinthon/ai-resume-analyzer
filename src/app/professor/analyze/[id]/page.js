@@ -1,12 +1,15 @@
 'use client'
 import { useState, useEffect, use } from 'react'
 import { supabase } from '@/lib/supabase'
+import { usePathname } from 'next/navigation'
 import AuthLayout from '@/components/AuthLayout'
 import AnalysisDetailView from '@/components/AnalysisDetailView'
 import { useLanguage } from '@/lib/LanguageContext'
 
 export default function ProfessorAnalysisDetail({ params }) {
   const { id } = use(params)
+  const pathname = usePathname()
+  const basePath = pathname.startsWith('/admin') ? '/admin' : '/professor'
   const { t } = useLanguage()
   const [analysis, setAnalysis] = useState(null)
   const [student, setStudent] = useState(null)
@@ -55,7 +58,7 @@ export default function ProfessorAnalysisDetail({ params }) {
 
   if (loading) {
     return (
-      <AuthLayout requiredRole="professor">
+      <AuthLayout requiredRole={basePath === '/admin' ? 'admin' : 'professor'}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}>
           <div style={{
             width: 36, height: 36,
@@ -72,7 +75,7 @@ export default function ProfessorAnalysisDetail({ params }) {
 
   if (!analysis) {
     return (
-      <AuthLayout requiredRole="professor">
+      <AuthLayout requiredRole={basePath === '/admin' ? 'admin' : 'professor'}>
         <p style={{ textAlign: 'center', color: 'var(--text-gray)', padding: 60 }}>
           {t('result.notFound')}
         </p>
@@ -85,12 +88,12 @@ export default function ProfessorAnalysisDetail({ params }) {
     : student?.username || '-'
 
   return (
-    <AuthLayout requiredRole="professor">
+    <AuthLayout requiredRole={basePath === '/admin' ? 'admin' : 'professor'}>
       <AnalysisDetailView
         analysis={analysis}
         categories={categories}
-        backLink="/professor/analyses"
-        newLink="/professor/analyze"
+        backLink={`${basePath}/analyses`}
+        newLink={`${basePath}/analyze`}
         extraHeader={student && (
           <div style={{
             background: 'var(--surface)',
