@@ -13,10 +13,18 @@ export default function ProfessorHistoryPage() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase
+      let { data, error } = await supabase
         .from('analyses')
         .select('*, profiles(first_name, last_name, student_id, username)')
         .order('created_at', { ascending: false })
+
+      if (error) {
+        const res = await supabase
+          .from('analyses')
+          .select('*')
+          .order('created_at', { ascending: false })
+        data = res.data
+      }
 
       setAnalyses(data || [])
       setLoading(false)
