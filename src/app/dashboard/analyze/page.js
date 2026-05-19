@@ -20,7 +20,7 @@ export default function AnalyzePage() {
     async function loadPositions() {
       const { data } = await supabase
         .from('job_positions')
-        .select('*')
+        .select('id, name')
         .eq('active', true)
         .order('name')
       setJobPositions(data || [])

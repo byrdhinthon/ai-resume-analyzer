@@ -21,7 +21,7 @@ export default function AdminUserDetailPage({ params }) {
       setProfile(profileData)
 
       const { data: analysesData } = await supabase
-        .from('analyses').select('*').eq('user_id', id).order('created_at', { ascending: false })
+        .from('analyses').select('id, file_name, job_position, total_score, status, created_at').eq('user_id', id).order('created_at', { ascending: false })
       setAnalyses(analysesData || [])
       setLoading(false)
     }
