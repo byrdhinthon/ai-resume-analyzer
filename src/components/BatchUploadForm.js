@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/LanguageContext'
+import { useProfile } from '@/lib/ProfileContext'
 
 const MAX_FILES = 30
 const MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -16,6 +17,7 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
   const [progress, setProgress] = useState({})
   const [error, setError] = useState('')
   const { t } = useLanguage()
+  const { user } = useProfile()
 
   function addFiles(e) {
     const newFiles = Array.from(e.target.files)
@@ -48,7 +50,7 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
 
     setUploading(true); setError('')
     const analysisIds = []
-    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setError('Not authenticated'); setUploading(false); return }
     const { data: { session } } = await supabase.auth.getSession()
 
     for (let i = 0; i < files.length; i++) {

@@ -4,10 +4,12 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import AuthLayout from '@/components/AuthLayout'
 import { useLanguage } from '@/lib/LanguageContext'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function AnalyzePage() {
   const router = useRouter()
   const { t } = useLanguage()
+  const { user } = useProfile()
   const [jobPositions, setJobPositions] = useState([])
   const [selectedPosition, setSelectedPosition] = useState('')
   const [customPosition, setCustomPosition] = useState('')
@@ -62,7 +64,7 @@ export default function AnalyzePage() {
 
     setLoading(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setError('Not authenticated'); setLoading(false); return }
       const fileExt = file.name.split('.').pop()
       const fileName = `${user.id}/${Date.now()}.${fileExt}`
 
