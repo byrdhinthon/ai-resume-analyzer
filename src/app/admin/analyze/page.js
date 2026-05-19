@@ -1,1 +1,3 @@
-export { default } from '@/app/professor/analyze/page'
+'use client'
+import ProfessorAnalyzePage from '@/app/professor/analyze/page'
+export default ProfessorAnalyzePage
