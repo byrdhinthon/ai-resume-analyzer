@@ -372,7 +372,7 @@ function UserSummaryTable({ users, t, basePath }) {
   }
 
   function copyToExcel() {
-    const header = [t('history.role'), t('history.studentId'), t('history.name'), t('history.email'), t('history.score'), t('history.position')]
+    const header = [t('history.role'), t('history.studentId'), t('history.student'), t('history.email'), t('history.score'), t('history.position')]
     const rows = users.map(u => [
       getRoleLabel(u.profiles?.role),
       u.profiles?.student_id || '-',
