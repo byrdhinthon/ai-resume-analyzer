@@ -51,7 +51,7 @@ export default function AdminUserDetailPage({ params }) {
       const result = await res.json()
       if (res.ok) {
         setProfile(prev => ({ ...prev, role: newRole }))
-        setRoleMsg(t('admin.userDetail.roleUpdated') || 'อัปเดต role สำเร็จ')
+        setRoleMsg(t('admin.userDetail.roleUpdated'))
       } else {
         setRoleMsg(result.error || 'เกิดข้อผิดพลาด')
       }
@@ -126,7 +126,7 @@ export default function AdminUserDetailPage({ params }) {
               <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)' }}>{profile.email}</p>
             </div>
             <div>
-              <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 4 }}>{t('admin.userDetail.studentId') || 'รหัสนักศึกษา'}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 4 }}>{t('admin.userDetail.studentId')}</p>
               <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)' }}>{profile.student_id || '-'}</p>
             </div>
             <div>
@@ -139,7 +139,7 @@ export default function AdminUserDetailPage({ params }) {
 
           {/* Role changer */}
           <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
-            <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 8 }}>{t('admin.userDetail.changeRole') || 'เปลี่ยน Role'}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 8 }}>{t('admin.userDetail.changeRole')}</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               {['member', 'professor', 'admin'].map(role => (
                 <button
@@ -163,9 +163,9 @@ export default function AdminUserDetailPage({ params }) {
                     transition: 'all 0.15s'
                   }}
                 >
-                  {role === 'member' ? (t('admin.userDetail.roleMember') || 'Member')
-                    : role === 'professor' ? (t('admin.userDetail.roleProfessor') || 'Professor')
-                    : (t('admin.userDetail.roleAdmin') || 'Admin')}
+                  {role === 'member' ? t('admin.userDetail.roleMember')
+                    : role === 'professor' ? t('admin.userDetail.roleProfessor')
+                    : t('admin.userDetail.roleAdmin')}
                 </button>
               ))}
               {roleLoading && (
@@ -186,7 +186,7 @@ export default function AdminUserDetailPage({ params }) {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 20 }}>
           {[
             { label: t('admin.userDetail.analyzeCount'), value: completedAnalyses.length, color: 'var(--primary)' },
             {

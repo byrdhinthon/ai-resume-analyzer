@@ -78,6 +78,7 @@ export default function Sidebar({ role }) {
       {/* Hamburger - mobile only */}
       <button
         onClick={() => setOpen(!open)}
+        aria-label={open ? 'Close menu' : 'Open menu'}
         className="md:hidden fixed top-[4.5rem] left-3 z-50"
         style={{
           background: 'var(--surface)',

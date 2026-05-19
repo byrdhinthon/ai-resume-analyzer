@@ -281,6 +281,14 @@ const translations = {
     'professor.studentId': 'รหัสนักศึกษา',
 
     // Batch upload
+    // API errors
+    'error.DOWNLOAD_FAILED': 'ดาวน์โหลดไฟล์ล้มเหลว',
+    'error.UNSUPPORTED_FILE_TYPE': 'ไม่รองรับประเภทไฟล์นี้',
+    'error.CANNOT_READ_FILE': 'ไม่สามารถอ่านข้อความจากไฟล์ได้ กรุณาตรวจสอบไฟล์',
+    'error.AI_INVALID_RESPONSE': 'AI ตอบกลับในรูปแบบที่ไม่ถูกต้อง',
+    'error.SAVE_FAILED': 'บันทึกผลล้มเหลว',
+    'error.ANALYZE_ERROR': 'เกิดข้อผิดพลาดในการวิเคราะห์',
+
     'batch.clickToSelect': 'คลิกเพื่อเลือกไฟล์ (หลายไฟล์ได้)',
     'batch.maxInfo': 'สูงสุด 30 ไฟล์ · ไฟล์ละไม่เกิน 5MB',
     'batch.maxFiles': 'สูงสุด 30 ไฟล์',
@@ -574,6 +582,14 @@ const translations = {
     'professor.studentId': 'Student ID',
 
     // Batch upload
+    // API errors
+    'error.DOWNLOAD_FAILED': 'Failed to download file',
+    'error.UNSUPPORTED_FILE_TYPE': 'Unsupported file type',
+    'error.CANNOT_READ_FILE': 'Cannot read text from file. Please check the file.',
+    'error.AI_INVALID_RESPONSE': 'AI returned an invalid response',
+    'error.SAVE_FAILED': 'Failed to save results',
+    'error.ANALYZE_ERROR': 'An error occurred during analysis',
+
     'batch.clickToSelect': 'Click to select files (multiple)',
     'batch.maxInfo': 'Max 30 files · 5MB each',
     'batch.maxFiles': 'Maximum 30 files',
