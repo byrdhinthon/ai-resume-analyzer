@@ -336,6 +336,7 @@ export default function ProfessorHistoryPage() {
           <UserSummaryTable
             users={filtered}
             t={t}
+            basePath={basePath}
           />
         )}
       </div>
@@ -343,7 +344,7 @@ export default function ProfessorHistoryPage() {
   )
 }
 
-function UserSummaryTable({ users, t }) {
+function UserSummaryTable({ users, t, basePath }) {
   const [copied, setCopied] = useState(false)
   const [page, setPage] = useState(1)
   const perPage = 20
