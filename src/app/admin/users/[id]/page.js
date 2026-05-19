@@ -17,7 +17,7 @@ export default function AdminUserDetailPage({ params }) {
   useEffect(() => {
     async function loadData() {
       const { data: profileData } = await supabase
-        .from('profiles').select('*').eq('id', id).single()
+        .from('profiles').select('id, username, email, role, student_id, first_name, last_name, created_at').eq('id', id).single()
       setProfile(profileData)
 
       const { data: analysesData } = await supabase

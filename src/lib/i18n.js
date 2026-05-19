@@ -147,6 +147,8 @@ const translations = {
     'common.delete': 'ลบ',
     'common.total': 'ทั้งหมด',
     'common.person': 'คน',
+    'common.prev': 'ก่อนหน้า',
+    'common.next': 'ถัดไป',
 
     // Admin Dashboard
     'admin.title': 'Admin Dashboard',
@@ -438,6 +440,8 @@ const translations = {
     'common.delete': 'Delete',
     'common.total': 'Total',
     'common.person': 'users',
+    'common.prev': 'Previous',
+    'common.next': 'Next',
 
     // Admin Dashboard
     'admin.title': 'Admin Dashboard',

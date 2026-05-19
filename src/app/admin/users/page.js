@@ -17,7 +17,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     async function loadUsers() {
       const { data } = await supabase
-        .from('profiles').select('*').order('created_at', { ascending: false })
+        .from('profiles').select('id, username, email, role, student_id, first_name, last_name, created_at').order('created_at', { ascending: false })
       setUsers(data || [])
       setFiltered(data || [])
       setLoading(false)

@@ -24,6 +24,7 @@ export default function ProfessorHistoryPage() {
         .from('analyses')
         .select('id, user_id, file_name, job_position, total_score, status, created_at, profiles(first_name, last_name, student_id, username, role, email)')
         .order('created_at', { ascending: false })
+        .limit(2000)
 
       setAnalyses(data || [])
       setLoading(false)
@@ -341,6 +342,13 @@ export default function ProfessorHistoryPage() {
 
 function UserSummaryTable({ users, t }) {
   const [copied, setCopied] = useState(false)
+  const [page, setPage] = useState(1)
+  const perPage = 20
+  const totalPages = Math.ceil(users.length / perPage)
+  const paged = users.slice((page - 1) * perPage, page * perPage)
+
+  // Reset page when filtered data changes
+  useEffect(() => { setPage(1) }, [users])
 
   const getScoreColor = (score) => {
     if (score >= 80) return '#16A34A'
@@ -439,7 +447,7 @@ function UserSummaryTable({ users, t }) {
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {paged.map((u) => (
                 <tr key={u.user_id} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '14px 16px' }}>
                     <span style={{
@@ -488,7 +496,7 @@ function UserSummaryTable({ users, t }) {
 
       {/* Mobile cards */}
       <div id="mobile-user-cards" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {users.map((u) => (
+        {paged.map((u) => (
           <div key={u.user_id} className="card" style={{ padding: 16 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
               <div style={{ flex: 1 }}>
@@ -533,6 +541,42 @@ function UserSummaryTable({ users, t }) {
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div style={{
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          gap: 8, marginTop: 16
+        }}>
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            style={{
+              padding: '6px 14px', fontSize: 13, borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border)', background: 'var(--surface)',
+              color: page === 1 ? 'var(--text-light)' : 'var(--text-dark)',
+              cursor: page === 1 ? 'default' : 'pointer'
+            }}
+          >
+            ‹ {t('common.prev') || 'ก่อนหน้า'}
+          </button>
+          <span style={{ fontSize: 13, color: 'var(--text-gray)' }}>
+            {page} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            style={{
+              padding: '6px 14px', fontSize: 13, borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--border)', background: 'var(--surface)',
+              color: page === totalPages ? 'var(--text-light)' : 'var(--text-dark)',
+              cursor: page === totalPages ? 'default' : 'pointer'
+            }}
+          >
+            {t('common.next') || 'ถัดไป'} ›
+          </button>
+        </div>
+      )}
     </>
   )
 }

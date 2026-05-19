@@ -18,7 +18,7 @@ export default function AdminPositionsPage() {
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
-    const { data: posData } = await supabase.from('job_positions').select('*').order('id')
+    const { data: posData } = await supabase.from('job_positions').select('id, name, active').order('id')
     setPositions(posData || [])
 
     const { data: analysesData } = await supabase.from('analyses').select('job_position')
