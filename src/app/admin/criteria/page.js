@@ -16,7 +16,7 @@ export default function AdminCriteriaPage() {
   useEffect(() => { loadCriteria() }, [])
 
   async function loadCriteria() {
-    const { data } = await supabase.from('scoring_criteria').select('*').order('id')
+    const { data } = await supabase.from('scoring_criteria').select('id, category, label, max_score, description, updated_at').order('id')
     setCriteria(data || [])
     setLoading(false)
   }
