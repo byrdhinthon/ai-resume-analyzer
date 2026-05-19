@@ -15,8 +15,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "AI Resume Analyzer",
-  description: "วิเคราะห์และประเมินเรซูเม่ด้วย AI",
+  title: {
+    default: 'AI Resume Analyzer',
+    template: '%s | AI Resume Analyzer',
+  },
+  description: 'วิเคราะห์และประเมินเรซูเม่ด้วย AI สำหรับนักศึกษาและอาจารย์',
+  keywords: ['resume', 'AI', 'analyzer', 'เรซูเม่', 'วิเคราะห์', 'สมัครงาน'],
+  authors: [{ name: 'AI Resume Analyzer' }],
+  openGraph: {
+    title: 'AI Resume Analyzer',
+    description: 'วิเคราะห์และประเมินเรซูเม่ด้วย AI สำหรับนักศึกษาและอาจารย์',
+    type: 'website',
+    locale: 'th_TH',
+    siteName: 'AI Resume Analyzer',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({ children }) {
