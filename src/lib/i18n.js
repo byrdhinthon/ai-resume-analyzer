@@ -136,6 +136,7 @@ const translations = {
     'admin.times': 'ครั้ง',
 
     'result.contactInfo': 'ข้อมูลติดต่อ',
+    'result.contact_info': 'ข้อมูลติดต่อ',
     'result.skills': 'ทักษะ',
     'result.experience': 'ประสบการณ์',
     'result.education': 'ระดับการศึกษา',
@@ -390,6 +391,7 @@ const translations = {
     'admin.times': 'times',
 
     'result.contactInfo': 'Contact Info',
+    'result.contact_info': 'Contact Info',
     'result.skills': 'Skills',
     'result.experience': 'Experience',
     'result.education': 'Education',
