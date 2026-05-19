@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 
@@ -8,6 +9,7 @@ export default function AnalysisHistoryTable({
   showStudent = false
 }) {
   const { t } = useLanguage()
+  const [copied, setCopied] = useState(false)
 
   const getScoreColor = (score) => {
     if (score >= 80) return '#16A34A'
@@ -21,9 +23,58 @@ export default function AnalysisHistoryTable({
     return { text: t('history.failed'), bg: '#FEE2E2', color: '#DC2626' }
   }
 
+  const getRoleLabel = (role) => {
+    if (role === 'professor') return 'Professor'
+    if (role === 'admin') return 'Admin'
+    return 'Member'
+  }
+
+  const getStudentName = (item) => {
+    if (item.profiles?.first_name) return `${item.profiles.first_name} ${item.profiles.last_name || ''}`.trim()
+    return item.profiles?.username || '-'
+  }
+
+  function copyToExcel() {
+    const header = showStudent
+      ? ['วันที่', 'ชื่อ-นามสกุล', 'รหัสนักศึกษา', 'Role', 'ไฟล์', 'ตำแหน่งงาน', 'คะแนน', 'สถานะ']
+      : ['วันที่', 'ไฟล์', 'ตำแหน่งงาน', 'คะแนน', 'สถานะ']
+
+    const rows = analyses.map(item => {
+      const date = new Date(item.created_at).toLocaleDateString('th-TH', {
+        year: 'numeric', month: 'short', day: 'numeric'
+      })
+      const score = item.total_score !== null ? item.total_score : ''
+      const status = item.status === 'completed' ? 'เสร็จสิ้น' : item.status === 'pending' ? 'รอวิเคราะห์' : 'ล้มเหลว'
+
+      if (showStudent) {
+        return [
+          date,
+          getStudentName(item),
+          item.profiles?.student_id || '-',
+          getRoleLabel(item.profiles?.role),
+          item.file_name,
+          item.job_position,
+          score,
+          status
+        ]
+      }
+      return [date, item.file_name, item.job_position, score, status]
+    })
+
+    const tsv = [header, ...rows].map(row => row.join('\t')).join('\n')
+    navigator.clipboard.writeText(tsv).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
   const headers = [
     t('history.date'),
-    ...(showStudent ? [t('history.student') || 'นักศึกษา'] : []),
+    ...(showStudent ? [
+      t('history.student') || 'นักศึกษา',
+      t('history.studentId') || 'รหัสนักศึกษา',
+      t('history.role') || 'Role',
+    ] : []),
     t('history.file'),
     t('history.position'),
     t('history.score'),
@@ -33,74 +84,126 @@ export default function AnalysisHistoryTable({
 
   return (
     <>
+      {/* Copy to Excel button */}
+      {showStudent && analyses.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <button
+            onClick={copyToExcel}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 16px', fontSize: 13, fontWeight: 500,
+              background: copied ? '#DCFCE7' : 'var(--surface)',
+              color: copied ? '#16A34A' : 'var(--text-gray)',
+              border: `1px solid ${copied ? '#16A34A' : 'var(--border)'}`,
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer', transition: 'all 0.15s'
+            }}
+          >
+            {copied ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                {t('history.copied') || 'คัดลอกแล้ว!'}
+              </>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                {t('history.copyExcel') || 'Copy สำหรับ Excel'}
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Desktop table */}
       <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'none' }} id="desktop-history-table">
         <style>{`@media (min-width: 768px) { #desktop-history-table { display: block !important; } #mobile-history-cards { display: none !important; } }`}</style>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {headers.map((h, i) => (
-                <th key={i} style={{
-                  textAlign: i >= headers.length - 3 ? 'center' : 'left',
-                  padding: '14px 16px', fontSize: 13, fontWeight: 600,
-                  color: 'var(--text-gray)', background: 'var(--input-bg)'
-                }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {analyses.map((item) => {
-              const s = getStatusStyle(item.status)
-              return (
-                <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-gray)' }}>
-                    {new Date(item.created_at).toLocaleDateString('th-TH', {
-                      year: 'numeric', month: 'short', day: 'numeric',
-                      hour: '2-digit', minute: '2-digit'
-                    })}
-                  </td>
-                  {showStudent && (
-                    <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)' }}>
-                      {item.profiles?.first_name
-                        ? `${item.profiles.first_name} ${item.profiles.last_name || ''}`
-                        : item.profiles?.username || '-'}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: showStudent ? 900 : 600 }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                {headers.map((h, i) => (
+                  <th key={i} style={{
+                    textAlign: i >= headers.length - 3 ? 'center' : 'left',
+                    padding: '14px 16px', fontSize: 13, fontWeight: 600,
+                    color: 'var(--text-gray)', background: 'var(--input-bg)',
+                    whiteSpace: 'nowrap'
+                  }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {analyses.map((item) => {
+                const s = getStatusStyle(item.status)
+                return (
+                  <tr key={item.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-gray)', whiteSpace: 'nowrap' }}>
+                      {new Date(item.created_at).toLocaleDateString('th-TH', {
+                        year: 'numeric', month: 'short', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                      })}
                     </td>
-                  )}
-                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {item.file_name}
-                  </td>
-                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)' }}>
-                    {item.job_position}
-                  </td>
-                  <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                    {item.total_score !== null ? (
-                      <span style={{ fontSize: 14, fontWeight: 700, color: getScoreColor(item.total_score) }}>
-                        {item.total_score}/100
-                      </span>
-                    ) : (
-                      <span style={{ color: 'var(--text-light)' }}>—</span>
+                    {showStudent && (
+                      <>
+                        <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)', fontWeight: 500 }}>
+                          {getStudentName(item)}
+                        </td>
+                        <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-gray)', fontFamily: 'monospace' }}>
+                          {item.profiles?.student_id || '-'}
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                          <span style={{
+                            fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99,
+                            background: item.profiles?.role === 'professor' ? '#DBEAFE' : 'var(--primary-light)',
+                            color: item.profiles?.role === 'professor' ? '#2563EB' : 'var(--primary)'
+                          }}>
+                            {getRoleLabel(item.profiles?.role)}
+                          </span>
+                        </td>
+                      </>
                     )}
-                  </td>
-                  <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                    <span style={{
-                      fontSize: 12, fontWeight: 500, padding: '4px 10px', borderRadius: 99,
-                      background: s.bg, color: s.color
-                    }}>{s.text}</span>
-                  </td>
-                  <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                    {item.status === 'completed' && (
-                      <Link href={detailPath(item.id)}
-                        style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
-                        {t('history.viewDetail')}
-                      </Link>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.file_name}
+                    </td>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)' }}>
+                      {item.job_position}
+                    </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      {item.total_score !== null ? (
+                        <span style={{ fontSize: 14, fontWeight: 700, color: getScoreColor(item.total_score) }}>
+                          {item.total_score}/100
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--text-light)' }}>—</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      <span style={{
+                        fontSize: 12, fontWeight: 500, padding: '4px 10px', borderRadius: 99,
+                        background: s.bg, color: s.color
+                      }}>{s.text}</span>
+                    </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      {item.status === 'completed' && (
+                        <Link href={detailPath(item.id)}
+                          style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
+                          {t('history.viewDetail')}
+                        </Link>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
+      {/* Mobile cards */}
       <div id="mobile-history-cards" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {analyses.map((item) => {
           const s = getStatusStyle(item.status)
@@ -111,11 +214,21 @@ export default function AnalysisHistoryTable({
                   <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)', marginBottom: 2 }}>{item.job_position}</p>
                   <p style={{ fontSize: 12, color: 'var(--text-gray)' }}>{item.file_name}</p>
                   {showStudent && (
-                    <p style={{ fontSize: 12, color: 'var(--text-gray)', marginTop: 2 }}>
-                      {item.profiles?.first_name
-                        ? `${item.profiles.first_name} ${item.profiles.last_name || ''}`
-                        : item.profiles?.username || '-'}
-                    </p>
+                    <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                      <p style={{ fontSize: 12, color: 'var(--text-dark)', fontWeight: 500 }}>
+                        {getStudentName(item)}
+                      </p>
+                      <span style={{ fontSize: 11, color: 'var(--text-light)', fontFamily: 'monospace' }}>
+                        {item.profiles?.student_id || ''}
+                      </span>
+                      <span style={{
+                        fontSize: 10, fontWeight: 600, padding: '1px 6px', borderRadius: 99,
+                        background: item.profiles?.role === 'professor' ? '#DBEAFE' : 'var(--primary-light)',
+                        color: item.profiles?.role === 'professor' ? '#2563EB' : 'var(--primary)'
+                      }}>
+                        {getRoleLabel(item.profiles?.role)}
+                      </span>
+                    </div>
                   )}
                 </div>
                 <span style={{
