@@ -1,18 +1,23 @@
 'use client'
 import { useState, useEffect, use } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 import AuthLayout from '@/components/AuthLayout'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AdminUserDetailPage({ params }) {
   const { id } = use(params)
+  const router = useRouter()
   const { t } = useLanguage()
   const [profile, setProfile] = useState(null)
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading] = useState(true)
   const [roleLoading, setRoleLoading] = useState(false)
   const [roleMsg, setRoleMsg] = useState('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteMsg, setDeleteMsg] = useState('')
 
   useEffect(() => {
     async function loadData() {
@@ -60,6 +65,34 @@ export default function AdminUserDetailPage({ params }) {
     }
     setRoleLoading(false)
     setTimeout(() => setRoleMsg(''), 3000)
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    setDeleteMsg('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ userId: id })
+      })
+      const result = await res.json()
+      if (res.ok) {
+        router.push('/admin/users')
+      } else {
+        const errKey = `admin.userDetail.${result.error === 'CANNOT_DELETE_SELF' ? 'cannotDeleteSelf' : 'deleteFailed'}`
+        setDeleteMsg(t(errKey))
+        setShowDeleteConfirm(false)
+      }
+    } catch {
+      setDeleteMsg(t('admin.userDetail.deleteFailed'))
+      setShowDeleteConfirm(false)
+    }
+    setDeleting(false)
   }
 
   const getScoreColor = (score) => {
@@ -181,6 +214,61 @@ export default function AdminUserDetailPage({ params }) {
                 fontSize: 13, marginTop: 8,
                 color: roleMsg.includes('สำเร็จ') || roleMsg.includes('success') ? '#16A34A' : '#DC2626'
               }}>{roleMsg}</p>
+            )}
+          </div>
+
+          {/* Delete user */}
+          <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div>
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#DC2626' }}>{t('admin.userDetail.deleteUser')}</p>
+                <p style={{ fontSize: 12, color: 'var(--text-gray)', marginTop: 2 }}>{t('admin.userDetail.deleteWarning')}</p>
+              </div>
+              {!showDeleteConfirm ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  style={{
+                    padding: '8px 20px', fontSize: 13, fontWeight: 600,
+                    borderRadius: 99, border: '1px solid #DC2626',
+                    background: 'transparent', color: '#DC2626',
+                    cursor: 'pointer', transition: 'all 0.15s',
+                    flexShrink: 0
+                  }}
+                >
+                  {t('admin.userDetail.deleteUser')}
+                </button>
+              ) : (
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={deleting}
+                    style={{
+                      padding: '8px 20px', fontSize: 13, fontWeight: 600,
+                      borderRadius: 99, border: '1px solid var(--border)',
+                      background: 'var(--surface)', color: 'var(--text-gray)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {t('admin.userDetail.cancel')}
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    style={{
+                      padding: '8px 20px', fontSize: 13, fontWeight: 600,
+                      borderRadius: 99, border: 'none',
+                      background: '#DC2626', color: '#fff',
+                      cursor: deleting ? 'wait' : 'pointer',
+                      opacity: deleting ? 0.6 : 1
+                    }}
+                  >
+                    {deleting ? '...' : t('admin.userDetail.confirmDelete')}
+                  </button>
+                </div>
+              )}
+            </div>
+            {deleteMsg && (
+              <p style={{ fontSize: 13, marginTop: 8, color: '#DC2626' }}>{deleteMsg}</p>
             )}
           </div>
         </div>
