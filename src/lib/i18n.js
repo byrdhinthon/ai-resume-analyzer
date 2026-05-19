@@ -243,8 +243,8 @@ const translations = {
 
     // Batch upload
     'batch.clickToSelect': 'คลิกเพื่อเลือกไฟล์ (หลายไฟล์ได้)',
-    'batch.maxInfo': 'สูงสุด 10 ไฟล์ · ไฟล์ละไม่เกิน 5MB',
-    'batch.maxFiles': 'สูงสุด 10 ไฟล์',
+    'batch.maxInfo': 'สูงสุด 30 ไฟล์ · ไฟล์ละไม่เกิน 5MB',
+    'batch.maxFiles': 'สูงสุด 30 ไฟล์',
     'batch.uploading': 'กำลังอัปโหลด...',
     'batch.analyzing': 'กำลังวิเคราะห์...',
     'batch.done': 'เสร็จสิ้น',
@@ -497,8 +497,8 @@ const translations = {
 
     // Batch upload
     'batch.clickToSelect': 'Click to select files (multiple)',
-    'batch.maxInfo': 'Max 10 files · 5MB each',
-    'batch.maxFiles': 'Maximum 10 files',
+    'batch.maxInfo': 'Max 30 files · 5MB each',
+    'batch.maxFiles': 'Maximum 30 files',
     'batch.uploading': 'Uploading...',
     'batch.analyzing': 'Analyzing...',
     'batch.done': 'Done',
