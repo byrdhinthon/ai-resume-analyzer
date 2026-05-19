@@ -12,9 +12,12 @@ export default function AdminPage() {
 
   useEffect(() => {
     async function loadStats() {
-      const { data: users } = await supabase.from('profiles').select('id')
-      const { data: analyses } = await supabase
-        .from('analyses').select('total_score, job_position').eq('status', 'completed')
+      const [{ data: users, error: e1 }, { data: analyses, error: e2 }] = await Promise.all([
+        supabase.from('profiles').select('id'),
+        supabase.from('analyses').select('total_score, job_position').eq('status', 'completed')
+      ])
+
+      if (e1 || e2) { setLoading(false); return }
 
       let averageScore = 0
       if (analyses && analyses.length > 0) {

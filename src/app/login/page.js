@@ -36,7 +36,6 @@ export default function LoginPage() {
         .from('profiles').select('role').eq('id', data.user.id).single()
 
       if (profileError || !profile) {
-        console.error('Profile fetch error:', profileError)
         setError(t('auth.profileError') || 'ไม่สามารถโหลดโปรไฟล์ได้ กรุณาลองใหม่')
         setLoading(false)
         return
@@ -46,7 +45,6 @@ export default function LoginPage() {
       else if (profile.role === 'professor') router.push('/professor')
       else router.push('/dashboard')
     } catch (err) {
-      console.error('Login error:', err)
       setError(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่')
       setLoading(false)
     }
