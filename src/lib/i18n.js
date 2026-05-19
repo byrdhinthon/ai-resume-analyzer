@@ -104,7 +104,9 @@ const translations = {
     'history.file': 'ไฟล์',
     'history.position': 'ตำแหน่งงาน',
     'history.score': 'คะแนน',
+    'history.highScore': 'คะแนนสูงสุด',
     'history.status': 'สถานะ',
+    'history.student': 'ชื่อ-นามสกุล',
     'history.studentId': 'รหัสนักศึกษา',
     'history.role': 'ประเภท',
     'history.copyExcel': 'คัดลอกสำหรับ Excel',
@@ -131,6 +133,9 @@ const translations = {
     'filter.items': 'รายการ',
     'filter.clear': 'ล้างตัวกรอง',
     'filter.noResults': 'ไม่พบผลลัพธ์ที่ตรงกับตัวกรอง',
+    'filter.people': 'คน',
+    'filter.analyzeCount': 'จำนวนวิเคราะห์',
+    'filter.positions': 'ตำแหน่งที่สมัคร',
 
     // Common
     'common.loading': 'กำลังโหลด...',
@@ -389,7 +394,9 @@ const translations = {
     'history.file': 'File',
     'history.position': 'Position',
     'history.score': 'Score',
+    'history.highScore': 'Highest Score',
     'history.status': 'Status',
+    'history.student': 'Name',
     'history.studentId': 'Student ID',
     'history.role': 'Role',
     'history.copyExcel': 'Copy for Excel',
@@ -416,6 +423,9 @@ const translations = {
     'filter.items': 'items',
     'filter.clear': 'Clear filters',
     'filter.noResults': 'No results matching filters',
+    'filter.people': 'people',
+    'filter.analyzeCount': 'Analyses',
+    'filter.positions': 'Applied Positions',
 
     // Common
     'common.loading': 'Loading...',

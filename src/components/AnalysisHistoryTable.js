@@ -6,7 +6,8 @@ import { useLanguage } from '@/lib/LanguageContext'
 export default function AnalysisHistoryTable({
   analyses,
   detailPath,
-  showStudent = false
+  showStudent = false,
+  userHighScores = null
 }) {
   const { t } = useLanguage()
   const [copied, setCopied] = useState(false)
@@ -34,16 +35,25 @@ export default function AnalysisHistoryTable({
     return item.profiles?.username || '-'
   }
 
+  const getDisplayScore = (item) => {
+    if (userHighScores && item.user_id && userHighScores[item.user_id] !== undefined) {
+      return userHighScores[item.user_id]
+    }
+    return item.total_score
+  }
+
   function copyToExcel() {
+    const scoreLabel = userHighScores ? 'คะแนนสูงสุด' : 'คะแนน'
     const header = showStudent
-      ? ['วันที่', 'ชื่อ-นามสกุล', 'รหัสนักศึกษา', 'Role', 'ไฟล์', 'ตำแหน่งงาน', 'คะแนน', 'สถานะ']
-      : ['วันที่', 'ไฟล์', 'ตำแหน่งงาน', 'คะแนน', 'สถานะ']
+      ? ['วันที่', 'ชื่อ-นามสกุล', 'รหัสนักศึกษา', 'Role', 'ไฟล์', 'ตำแหน่งงาน', scoreLabel, 'สถานะ']
+      : ['วันที่', 'ไฟล์', 'ตำแหน่งงาน', scoreLabel, 'สถานะ']
 
     const rows = analyses.map(item => {
       const date = new Date(item.created_at).toLocaleDateString('th-TH', {
         year: 'numeric', month: 'short', day: 'numeric'
       })
-      const score = item.total_score !== null ? item.total_score : ''
+      const displayScore = getDisplayScore(item)
+      const score = displayScore !== null && displayScore !== undefined ? displayScore : ''
       const status = item.status === 'completed' ? 'เสร็จสิ้น' : item.status === 'pending' ? 'รอวิเคราะห์' : 'ล้มเหลว'
 
       if (showStudent) {
@@ -77,7 +87,7 @@ export default function AnalysisHistoryTable({
     ] : []),
     t('history.file'),
     t('history.position'),
-    t('history.score'),
+    userHighScores ? (t('history.highScore') || 'คะแนนสูงสุด') : t('history.score'),
     t('history.status'),
     ''
   ]
@@ -173,13 +183,16 @@ export default function AnalysisHistoryTable({
                       {item.job_position}
                     </td>
                     <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                      {item.total_score !== null ? (
-                        <span style={{ fontSize: 14, fontWeight: 700, color: getScoreColor(item.total_score) }}>
-                          {item.total_score}/100
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--text-light)' }}>—</span>
-                      )}
+                      {(() => {
+                        const score = getDisplayScore(item)
+                        return score !== null && score !== undefined ? (
+                          <span style={{ fontSize: 14, fontWeight: 700, color: getScoreColor(score) }}>
+                            {score}/100
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--text-light)' }}>—</span>
+                        )
+                      })()}
                     </td>
                     <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                       <span style={{
@@ -243,11 +256,14 @@ export default function AnalysisHistoryTable({
                   })}
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  {item.total_score !== null && (
-                    <span style={{ fontSize: 14, fontWeight: 700, color: getScoreColor(item.total_score) }}>
-                      {item.total_score}/100
-                    </span>
-                  )}
+                  {(() => {
+                    const score = getDisplayScore(item)
+                    return score !== null && score !== undefined ? (
+                      <span style={{ fontSize: 14, fontWeight: 700, color: getScoreColor(score) }}>
+                        {score}/100
+                      </span>
+                    ) : null
+                  })()}
                   {item.status === 'completed' && (
                     <Link href={detailPath(item.id)}
                       style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
