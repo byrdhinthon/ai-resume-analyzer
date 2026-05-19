@@ -106,7 +106,7 @@ export async function POST(request) {
     // ดึงเกณฑ์จาก database
     const { data: criteriaData } = await supabase
       .from('scoring_criteria')
-      .select('*')
+      .select('category, max_score, description')
       .order('id')
 
     const criteriaText = (criteriaData || []).map(c =>
