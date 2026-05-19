@@ -114,6 +114,24 @@ const translations = {
     'history.failed': 'ล้มเหลว',
     'history.viewDetail': 'ดูรายละเอียด',
 
+    // Filters
+    'filter.title': 'ตัวกรอง',
+    'filter.active': 'กำลังกรอง',
+    'filter.search': 'ค้นหาชื่อ / รหัสนักศึกษา',
+    'filter.searchPlaceholder': 'พิมพ์ชื่อหรือรหัส...',
+    'filter.role': 'ประเภทผู้ใช้',
+    'filter.allRoles': 'ทั้งหมด',
+    'filter.member': 'นักศึกษา (Member)',
+    'filter.professor': 'อาจารย์ (Professor)',
+    'filter.position': 'ตำแหน่งงาน',
+    'filter.allPositions': 'ทุกตำแหน่ง',
+    'filter.scoreRange': 'ช่วงคะแนน',
+    'filter.showing': 'แสดง',
+    'filter.of': 'จาก',
+    'filter.items': 'รายการ',
+    'filter.clear': 'ล้างตัวกรอง',
+    'filter.noResults': 'ไม่พบผลลัพธ์ที่ตรงกับตัวกรอง',
+
     // Common
     'common.loading': 'กำลังโหลด...',
     'common.back': 'กลับ',
@@ -380,6 +398,24 @@ const translations = {
     'history.pending': 'Pending',
     'history.failed': 'Failed',
     'history.viewDetail': 'View Detail',
+
+    // Filters
+    'filter.title': 'Filters',
+    'filter.active': 'Filtering',
+    'filter.search': 'Search name / student ID',
+    'filter.searchPlaceholder': 'Type name or ID...',
+    'filter.role': 'User type',
+    'filter.allRoles': 'All',
+    'filter.member': 'Student (Member)',
+    'filter.professor': 'Professor',
+    'filter.position': 'Job position',
+    'filter.allPositions': 'All positions',
+    'filter.scoreRange': 'Score range',
+    'filter.showing': 'Showing',
+    'filter.of': 'of',
+    'filter.items': 'items',
+    'filter.clear': 'Clear filters',
+    'filter.noResults': 'No results matching filters',
 
     // Common
     'common.loading': 'Loading...',
