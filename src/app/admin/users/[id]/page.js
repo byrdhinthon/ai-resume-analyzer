@@ -11,6 +11,8 @@ export default function AdminUserDetailPage({ params }) {
   const [profile, setProfile] = useState(null)
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading] = useState(true)
+  const [roleLoading, setRoleLoading] = useState(false)
+  const [roleMsg, setRoleMsg] = useState('')
 
   useEffect(() => {
     async function loadData() {
@@ -31,6 +33,34 @@ export default function AdminUserDetailPage({ params }) {
     ? Math.round(completedAnalyses.reduce((sum, a) => sum + a.total_score, 0) / completedAnalyses.length)
     : 0
   const jobPositions = [...new Set(analyses.map(a => a.job_position))]
+
+  async function changeRole(newRole) {
+    if (!profile || newRole === profile.role) return
+    setRoleLoading(true)
+    setRoleMsg('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/admin/update-role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ userId: id, newRole })
+      })
+      const result = await res.json()
+      if (res.ok) {
+        setProfile(prev => ({ ...prev, role: newRole }))
+        setRoleMsg(t('admin.userDetail.roleUpdated') || 'อัปเดต role สำเร็จ')
+      } else {
+        setRoleMsg(result.error || 'เกิดข้อผิดพลาด')
+      }
+    } catch {
+      setRoleMsg('เกิดข้อผิดพลาด')
+    }
+    setRoleLoading(false)
+    setTimeout(() => setRoleMsg(''), 3000)
+  }
 
   const getScoreColor = (score) => {
     if (score >= 80) return '#16A34A'
@@ -87,37 +117,71 @@ export default function AdminUserDetailPage({ params }) {
         {/* Profile card */}
         <div className="card" style={{ padding: 24, marginBottom: 20 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-            {[
-              { label: t('admin.userDetail.username'), value: profile.username },
-              { label: t('admin.userDetail.email'), value: profile.email },
-              {
-                label: t('admin.userDetail.role'),
-                value: null,
-                badge: profile.role,
-                badgeStyle: {
-                  background: profile.role === 'admin' ? '#F3E8FF' : 'var(--primary-light)',
-                  color: profile.role === 'admin' ? '#7C3AED' : 'var(--primary)'
-                }
-              },
-              {
-                label: t('admin.userDetail.date'),
-                value: new Date(profile.created_at).toLocaleDateString('th-TH', {
-                  year: 'numeric', month: 'long', day: 'numeric'
-                })
-              }
-            ].map((f, i) => (
-              <div key={i}>
-                <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 4 }}>{f.label}</p>
-                {f.badge ? (
-                  <span style={{
-                    fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 99,
-                    ...f.badgeStyle
-                  }}>{f.badge}</span>
-                ) : (
-                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)' }}>{f.value}</p>
-                )}
-              </div>
-            ))}
+            <div>
+              <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 4 }}>{t('admin.userDetail.username')}</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)' }}>{profile.username}</p>
+            </div>
+            <div>
+              <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 4 }}>{t('admin.userDetail.email')}</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)' }}>{profile.email}</p>
+            </div>
+            <div>
+              <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 4 }}>{t('admin.userDetail.studentId') || 'รหัสนักศึกษา'}</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)' }}>{profile.student_id || '-'}</p>
+            </div>
+            <div>
+              <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 4 }}>{t('admin.userDetail.date')}</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)' }}>
+                {new Date(profile.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+          </div>
+
+          {/* Role changer */}
+          <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+            <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 8 }}>{t('admin.userDetail.changeRole') || 'เปลี่ยน Role'}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {['member', 'professor', 'admin'].map(role => (
+                <button
+                  key={role}
+                  onClick={() => changeRole(role)}
+                  disabled={roleLoading || role === profile.role}
+                  style={{
+                    padding: '8px 20px',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    borderRadius: 99,
+                    border: role === profile.role ? '2px solid var(--primary)' : '1px solid var(--border)',
+                    background: role === profile.role
+                      ? (role === 'admin' ? '#F3E8FF' : role === 'professor' ? '#DBEAFE' : 'var(--primary-light)')
+                      : 'var(--surface)',
+                    color: role === profile.role
+                      ? (role === 'admin' ? '#7C3AED' : role === 'professor' ? '#2563EB' : 'var(--primary)')
+                      : 'var(--text-gray)',
+                    cursor: roleLoading || role === profile.role ? 'default' : 'pointer',
+                    opacity: roleLoading ? 0.6 : 1,
+                    transition: 'all 0.15s'
+                  }}
+                >
+                  {role === 'member' ? (t('admin.userDetail.roleMember') || 'Member')
+                    : role === 'professor' ? (t('admin.userDetail.roleProfessor') || 'Professor')
+                    : (t('admin.userDetail.roleAdmin') || 'Admin')}
+                </button>
+              ))}
+              {roleLoading && (
+                <div style={{
+                  width: 20, height: 20, border: '2px solid var(--primary-light)',
+                  borderTopColor: 'var(--primary)', borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite'
+                }} />
+              )}
+            </div>
+            {roleMsg && (
+              <p style={{
+                fontSize: 13, marginTop: 8,
+                color: roleMsg.includes('สำเร็จ') || roleMsg.includes('success') ? '#16A34A' : '#DC2626'
+              }}>{roleMsg}</p>
+            )}
           </div>
         </div>
 

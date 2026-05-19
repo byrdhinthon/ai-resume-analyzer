@@ -173,6 +173,12 @@ const translations = {
     'admin.userDetail.completed': 'เสร็จสิ้น',
     'admin.userDetail.pending': 'รอวิเคราะห์',
     'admin.userDetail.failed': 'ล้มเหลว',
+    'admin.userDetail.studentId': 'รหัสนักศึกษา',
+    'admin.userDetail.changeRole': 'เปลี่ยน Role',
+    'admin.userDetail.roleMember': 'นักศึกษา (Member)',
+    'admin.userDetail.roleProfessor': 'อาจารย์ (Professor)',
+    'admin.userDetail.roleAdmin': 'ผู้ดูแล (Admin)',
+    'admin.userDetail.roleUpdated': 'อัปเดต role สำเร็จ',
 
     'admin.positions.title': 'จัดการตำแหน่งงาน',
     'admin.positions.add': '+ เพิ่มตำแหน่ง',
@@ -214,6 +220,7 @@ const translations = {
     'auth.checkEmailTip': 'หากไม่พบอีเมล กรุณาตรวจสอบในโฟลเดอร์ Spam หรือ Junk',
 
     'auth.loginSubtitle': 'เข้าสู่ระบบเพื่อวิเคราะห์เรซูเม่ของคุณ',
+    'auth.profileError': 'ไม่สามารถโหลดโปรไฟล์ได้ กรุณาลองใหม่',
     'auth.registerSubtitle': 'สร้างบัญชีของคุณเพื่อเริ่มต้นใช้งาน',
     'auth.forgotSubtitle': 'กรอกอีเมลของคุณ เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้',
     'auth.resetSubtitle': 'เลือกรหัสผ่านใหม่สำหรับบัญชีของคุณ',
@@ -428,6 +435,12 @@ const translations = {
     'admin.userDetail.completed': 'Completed',
     'admin.userDetail.pending': 'Pending',
     'admin.userDetail.failed': 'Failed',
+    'admin.userDetail.studentId': 'Student ID',
+    'admin.userDetail.changeRole': 'Change Role',
+    'admin.userDetail.roleMember': 'Member',
+    'admin.userDetail.roleProfessor': 'Professor',
+    'admin.userDetail.roleAdmin': 'Admin',
+    'admin.userDetail.roleUpdated': 'Role updated successfully',
 
     'admin.positions.title': 'Manage Positions',
     'admin.positions.add': '+ Add Position',
@@ -469,6 +482,7 @@ const translations = {
     'auth.checkEmailTip': 'If you don\'t see the email, please check your Spam or Junk folder.',
 
     'auth.loginSubtitle': 'Sign in to analyze your resume',
+    'auth.profileError': 'Could not load profile. Please try again.',
     'auth.registerSubtitle': 'Create your account to get started',
     'auth.forgotSubtitle': "Enter your email and we'll send you a reset link",
     'auth.resetSubtitle': 'Choose a new password for your account',
