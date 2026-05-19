@@ -3,10 +3,11 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
+import LanguageToggle from '@/components/LanguageToggle'
 
 export default function Navbar({ profile }) {
   const router = useRouter()
-  const { locale, toggleLanguage, t } = useLanguage()
+  const { t } = useLanguage()
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -17,7 +18,7 @@ export default function Navbar({ profile }) {
     <nav style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }} className="sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href={profile?.role === 'admin' ? '/admin' : '/dashboard'} className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
+        <Link href={profile?.role === 'admin' ? '/admin' : '/dashboard'} className="flex items-center gap-2" style={{ textDecoration: 'none' }} aria-label="AI Resume Analyzer - Home">
           <div className="icon-wrap" style={{ width: 36, height: 36, borderRadius: 10 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -31,21 +32,7 @@ export default function Navbar({ profile }) {
 
         {/* Right */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={toggleLanguage}
-            style={{
-              background: 'var(--input-bg)',
-              border: 'none',
-              borderRadius: 'var(--radius-pill)',
-              padding: '6px 14px',
-              fontSize: 13,
-              fontWeight: 600,
-              color: 'var(--text-gray)',
-              cursor: 'pointer'
-            }}
-          >
-            {t('nav.language')}
-          </button>
+          <LanguageToggle />
           <span style={{ fontSize: 14, color: 'var(--text-gray)' }} className="hidden sm:inline">
             {profile?.username}
           </span>

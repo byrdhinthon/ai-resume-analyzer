@@ -57,7 +57,7 @@ export default function ProfessorDashboard() {
         ) : (
           <>
             {/* Stats row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 24 }}>
               {[
                 { label: t('professor.totalResumes'), value: stats.total, color: 'var(--primary)' },
                 {

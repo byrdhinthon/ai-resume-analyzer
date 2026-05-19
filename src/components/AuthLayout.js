@@ -46,7 +46,7 @@ export default function AuthLayout({ children, requiredRole }) {
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <Navbar profile={profile} />
       <div className="flex">
-        <Sidebar role={profile.role} />
+        <Sidebar role={profile.role} requiredRole={requiredRole} />
         <main className="flex-1 p-6 min-w-0" style={{ maxWidth: '100%' }}>
           {children}
         </main>

@@ -60,7 +60,7 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Stats row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 24 }}>
               {[
                 { label: t('dashboard.analyzeCount'), value: stats.count, color: 'var(--primary)' },
                 { label: t('dashboard.averageScore'), value: stats.count > 0 ? `${stats.average}` : '-', color: stats.count > 0 ? getScoreColor(stats.average) : 'var(--text-light)', sub: stats.count > 0 ? '/100' : '' },

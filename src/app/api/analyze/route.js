@@ -82,7 +82,7 @@ export async function POST(request) {
 
     if (downloadError) {
       console.error('Download error:', downloadError.message)
-      return Response.json({ error: 'ดาวน์โหลดไฟล์ล้มเหลว' }, { status: 400 })
+      return Response.json({ error: 'DOWNLOAD_FAILED' }, { status: 400 })
     }
 
     // 2. แปลงเป็น Buffer แล้ว extract text
@@ -94,12 +94,12 @@ export async function POST(request) {
     } else if (fileName.endsWith('.docx')) {
       resumeText = await extractDocxText(buffer)
     } else {
-      return Response.json({ error: 'ไม่รองรับประเภทไฟล์นี้' }, { status: 400 })
+      return Response.json({ error: 'UNSUPPORTED_FILE_TYPE' }, { status: 400 })
     }
 
     resumeText = String(resumeText || '')
     if (!resumeText || resumeText.trim().length < 10) {
-      return Response.json({ error: 'ไม่สามารถอ่านข้อความจากไฟล์ได้ กรุณาตรวจสอบไฟล์' }, { status: 400 })
+      return Response.json({ error: 'CANNOT_READ_FILE' }, { status: 400 })
     }
 
     // 3. ส่งให้ OpenAI วิเคราะห์
@@ -154,12 +154,12 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
       const cleaned = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
       result = JSON.parse(cleaned)
     } catch (parseError) {
-      return Response.json({ error: 'AI ตอบกลับในรูปแบบที่ไม่ถูกต้อง' }, { status: 500 })
+      return Response.json({ error: 'AI_INVALID_RESPONSE' }, { status: 500 })
     }
 
     // 5. ตรวจสอบและจำกัดคะแนนให้อยู่ในช่วงที่ถูกต้อง
     if (!result.scores || typeof result.scores !== 'object') {
-      return Response.json({ error: 'AI ตอบกลับในรูปแบบที่ไม่ถูกต้อง' }, { status: 500 })
+      return Response.json({ error: 'AI_INVALID_RESPONSE' }, { status: 500 })
     }
 
     // Clamp scores ให้อยู่ในช่วง 0 - max_score ของแต่ละ category
@@ -186,7 +186,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
 
     if (updateError) {
       console.error('Update error:', updateError.message)
-      return Response.json({ error: 'บันทึกผลล้มเหลว' }, { status: 500 })
+      return Response.json({ error: 'SAVE_FAILED' }, { status: 500 })
     }
 
     return Response.json({
@@ -198,6 +198,6 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
 
   } catch (error) {
     console.error('Analyze error:', error)
-    return Response.json({ error: 'เกิดข้อผิดพลาดในการวิเคราะห์' }, { status: 500 })
+    return Response.json({ error: 'ANALYZE_ERROR' }, { status: 500 })
   }
 }

@@ -48,7 +48,7 @@ export default function AnalysisResultPage({ params }) {
     }
 
     if (error || !data) {
-      setError(t('result.notFound') || 'ไม่พบข้อมูลการวิเคราะห์')
+      setError(t('result.notFound'))
       setLoading(false)
       return
     }
@@ -76,7 +76,8 @@ export default function AnalysisResultPage({ params }) {
 
     const result = await response.json()
     if (!response.ok) {
-      setError(result.error || t('analyze.failed') || 'วิเคราะห์ล้มเหลว')
+      const errKey = `error.${result.error}`
+      setError(t(errKey) !== errKey ? t(errKey) : (result.error || t('analyze.failed')))
       setAnalyzing(false)
       return
     }
@@ -223,7 +224,7 @@ export default function AnalysisResultPage({ params }) {
         </div>
       ) : (
         <div style={{ textAlign: 'center', marginTop: 60 }}>
-          <p style={{ color: '#DC2626', marginBottom: 16 }}>{t('analyze.failed') || 'Analysis failed'}</p>
+          <p style={{ color: '#DC2626', marginBottom: 16 }}>{t('analyze.failed')}</p>
           <Link href="/dashboard/analyze" className="btn-primary" style={{ textDecoration: 'none', padding: '12px 24px', fontSize: 14 }}>
             {t('result.newAnalysis')}
           </Link>

@@ -133,7 +133,7 @@ export default function AdminPage() {
                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-light)', width: 20 }}>{i + 1}</span>
                         <span style={{ fontSize: 14, color: 'var(--text-dark)' }}>{pos.name}</span>
                       </div>
-                      <span style={{ fontSize: 13, color: 'var(--text-gray)' }}>{pos.count} {t('admin.times')}</span>
+                      <span style={{ fontSize: 13, color: 'var(--text-gray)' }}>{pos.count} {pos.count === 1 ? t('admin.time') : t('admin.times')}</span>
                     </div>
                   ))}
                 </div>

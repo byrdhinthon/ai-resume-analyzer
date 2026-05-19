@@ -25,13 +25,13 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
     const validFiles = []
     for (const f of newFiles) {
       if (files.length + validFiles.length >= MAX_FILES) {
-        setError(t('batch.maxFiles') || `สูงสุด ${MAX_FILES} ไฟล์`); break
+        setError(t('batch.maxFiles')); break
       }
       if (!ALLOWED_TYPES.includes(f.type)) {
-        setError(t('analyze.fileTypeError') || 'รองรับเฉพาะ PDF และ DOCX'); continue
+        setError(t('analyze.fileTypeError')); continue
       }
       if (f.size > MAX_FILE_SIZE) {
-        setError(t('analyze.fileSizeError') || 'ไฟล์ต้องไม่เกิน 5MB'); continue
+        setError(t('analyze.fileSizeError')); continue
       }
       if (files.some(ex => ex.name === f.name && ex.size === f.size)) continue
       validFiles.push(f)
@@ -45,8 +45,8 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
   }
 
   async function uploadAll() {
-    if (!jobPosition) { setError(t('analyze.selectPositionError') || 'กรุณาเลือกตำแหน่งงาน'); return }
-    if (files.length === 0) { setError(t('analyze.selectFileError') || 'กรุณาเลือกไฟล์'); return }
+    if (!jobPosition) { setError(t('analyze.selectPositionError')); return }
+    if (files.length === 0) { setError(t('analyze.selectFileError')); return }
 
     setUploading(true); setError('')
     const analysisIds = []
@@ -89,10 +89,10 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
 
   const getStatusIcon = (s) => ({ uploading: '⬆️', analyzing: '🔍', done: '✅', error: '❌' }[s] || '📄')
   const getStatusText = (s) => ({
-    uploading: t('batch.uploading') || 'กำลังอัปโหลด...',
-    analyzing: t('batch.analyzing') || 'กำลังวิเคราะห์...',
-    done: t('batch.done') || 'เสร็จสิ้น',
-    error: t('batch.error') || 'ผิดพลาด'
+    uploading: t('batch.uploading'),
+    analyzing: t('batch.analyzing'),
+    done: t('batch.done'),
+    error: t('batch.error')
   }[s] || '')
 
   return (
@@ -108,7 +108,7 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="var(--text-gray)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <p style={{ fontSize: 14, color: 'var(--text-gray)', marginBottom: 4 }}>{t('batch.clickToSelect') || 'คลิกเพื่อเลือกไฟล์ (หลายไฟล์ได้)'}</p>
+          <p style={{ fontSize: 14, color: 'var(--text-gray)', marginBottom: 4 }}>{t('batch.clickToSelect')}</p>
           <p style={{ fontSize: 12, color: 'var(--text-light)' }}>PDF, DOCX · {t('batch.maxInfo') || `สูงสุด ${MAX_FILES} ไฟล์ · ไฟล์ละไม่เกิน 5MB`}</p>
         </div>
       </label>
@@ -136,7 +136,7 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
 
       {files.length > 0 && (
         <button type="button" onClick={uploadAll} disabled={uploading} className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: 15, marginTop: 16 }}>
-          {uploading ? (t('batch.processing') || 'กำลังประมวลผล...') : (t('batch.submit') || `อัปโหลดและวิเคราะห์ ${files.length} ไฟล์`)}
+          {uploading ? t('batch.processing') : `${t('batch.submit')} ${files.length}`}
         </button>
       )}
     </div>

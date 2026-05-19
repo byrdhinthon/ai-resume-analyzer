@@ -140,14 +140,14 @@ export default function ProfessorHistoryPage() {
                   <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" stroke="var(--text-gray)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
                 <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)' }}>
-                  {t('filter.title') || 'ตัวกรอง'}
+                  {t('filter.title')}
                 </span>
                 {hasActiveFilter && (
                   <span style={{
                     fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99,
                     background: 'var(--primary)', color: '#fff'
                   }}>
-                    {t('filter.active') || 'กำลังกรอง'}
+                    {t('filter.active')}
                   </span>
                 )}
               </div>
@@ -160,10 +160,10 @@ export default function ProfessorHistoryPage() {
             {showFilters && (
               <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {/* Row 1: Search + Role */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
                   <div>
                     <label style={{ fontSize: 12, color: 'var(--text-gray)', display: 'block', marginBottom: 6 }}>
-                      {t('filter.search') || 'ค้นหาชื่อ / รหัสนักศึกษา'}
+                      {t('filter.search')}
                     </label>
                     <div className="input-wrap">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, color: 'var(--text-light)' }}>
@@ -174,14 +174,14 @@ export default function ProfessorHistoryPage() {
                         type="text"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder={t('filter.searchPlaceholder') || 'พิมพ์ชื่อหรือรหัส...'}
+                        placeholder={t('filter.searchPlaceholder')}
                         style={{ fontSize: 13 }}
                       />
                     </div>
                   </div>
                   <div>
                     <label style={{ fontSize: 12, color: 'var(--text-gray)', display: 'block', marginBottom: 6 }}>
-                      {t('filter.role') || 'ประเภทผู้ใช้'}
+                      {t('filter.role')}
                     </label>
                     <select
                       value={roleFilter}
@@ -193,18 +193,18 @@ export default function ProfessorHistoryPage() {
                         cursor: 'pointer'
                       }}
                     >
-                      <option value="all">{t('filter.allRoles') || 'ทั้งหมด'}</option>
-                      <option value="member">{t('filter.member') || 'นักศึกษา (Member)'}</option>
-                      <option value="professor">{t('filter.professor') || 'อาจารย์ (Professor)'}</option>
+                      <option value="all">{t('filter.allRoles')}</option>
+                      <option value="member">{t('filter.member')}</option>
+                      <option value="professor">{t('filter.professor')}</option>
                     </select>
                   </div>
                 </div>
 
                 {/* Row 2: Position + Score range */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
                   <div>
                     <label style={{ fontSize: 12, color: 'var(--text-gray)', display: 'block', marginBottom: 6 }}>
-                      {t('filter.position') || 'ตำแหน่งงาน'}
+                      {t('filter.position')}
                     </label>
                     <select
                       value={positionFilter}
@@ -216,7 +216,7 @@ export default function ProfessorHistoryPage() {
                         cursor: 'pointer'
                       }}
                     >
-                      <option value="all">{t('filter.allPositions') || 'ทุกตำแหน่ง'}</option>
+                      <option value="all">{t('filter.allPositions')}</option>
                       {positions.map(pos => (
                         <option key={pos} value={pos}>{pos}</option>
                       ))}
@@ -224,7 +224,7 @@ export default function ProfessorHistoryPage() {
                   </div>
                   <div>
                     <label style={{ fontSize: 12, color: 'var(--text-gray)', display: 'block', marginBottom: 6 }}>
-                      {t('filter.scoreRange') || 'ช่วงคะแนน'}
+                      {t('filter.scoreRange')}
                     </label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <input
@@ -263,9 +263,9 @@ export default function ProfessorHistoryPage() {
                 {/* Filter summary + clear */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontSize: 13, color: 'var(--text-gray)' }}>
-                    {t('filter.showing') || 'แสดง'}{' '}
+                    {t('filter.showing')}{' '}
                     <strong style={{ color: 'var(--text-dark)' }}>{filtered.length}</strong>{' '}
-                    {t('filter.of') || 'จาก'} {userSummaries.length} {t('filter.people') || 'คน'}
+                    {t('filter.of')} {userSummaries.length} {t('filter.people')}
                   </p>
                   {hasActiveFilter && (
                     <button
@@ -279,7 +279,7 @@ export default function ProfessorHistoryPage() {
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                         <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                       </svg>
-                      {t('filter.clear') || 'ล้างตัวกรอง'}
+                      {t('filter.clear')}
                     </button>
                   )}
                 </div>
@@ -317,7 +317,7 @@ export default function ProfessorHistoryPage() {
         ) : filtered.length === 0 ? (
           <div className="card" style={{ textAlign: 'center', padding: '48px 20px' }}>
             <p style={{ fontSize: 15, color: 'var(--text-gray)', marginBottom: 8 }}>
-              {t('filter.noResults') || 'ไม่พบผลลัพธ์ที่ตรงกับตัวกรอง'}
+              {t('filter.noResults')}
             </p>
             <button
               onClick={clearFilters}
@@ -326,7 +326,7 @@ export default function ProfessorHistoryPage() {
                 border: 'none', cursor: 'pointer', fontWeight: 600
               }}
             >
-              {t('filter.clear') || 'ล้างตัวกรอง'}
+              {t('filter.clear')}
             </button>
           </div>
         ) : (
@@ -368,7 +368,7 @@ function UserSummaryTable({ users, t }) {
   }
 
   function copyToExcel() {
-    const header = ['ประเภท', 'รหัสนักศึกษา', 'ชื่อ-นามสกุล', 'อีเมล', 'คะแนนสูงสุด', 'ตำแหน่งงาน']
+    const header = [t('history.role'), t('history.studentId'), t('history.name'), t('history.email'), t('history.score'), t('history.position')]
     const rows = users.map(u => [
       getRoleLabel(u.profiles?.role),
       u.profiles?.student_id || '-',
@@ -385,12 +385,12 @@ function UserSummaryTable({ users, t }) {
   }
 
   const headers = [
-    t('history.role') || 'ประเภท',
-    t('history.studentId') || 'รหัสนักศึกษา',
-    t('history.student') || 'ชื่อ-นามสกุล',
-    t('history.email') || 'อีเมล',
-    t('history.highScore') || 'คะแนนสูงสุด',
-    t('history.position') || 'ตำแหน่งงาน',
+    t('history.role'),
+    t('history.studentId'),
+    t('history.student'),
+    t('history.email'),
+    t('history.highScore'),
+    t('history.position'),
     ''
   ]
 
@@ -415,7 +415,7 @@ function UserSummaryTable({ users, t }) {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              {t('history.copied') || 'คัดลอกแล้ว!'}
+              {t('history.copied')}
             </>
           ) : (
             <>
@@ -423,7 +423,7 @@ function UserSummaryTable({ users, t }) {
                 <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
                 <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" strokeWidth="2"/>
               </svg>
-              {t('history.copyExcel') || 'Copy สำหรับ Excel'}
+              {t('history.copyExcel')}
             </>
           )}
         </button>
@@ -558,7 +558,7 @@ function UserSummaryTable({ users, t }) {
               cursor: page === 1 ? 'default' : 'pointer'
             }}
           >
-            ‹ {t('common.prev') || 'ก่อนหน้า'}
+            ‹ {t('common.prev')}
           </button>
           <span style={{ fontSize: 13, color: 'var(--text-gray)' }}>
             {page} / {totalPages}
@@ -573,7 +573,7 @@ function UserSummaryTable({ users, t }) {
               cursor: page === totalPages ? 'default' : 'pointer'
             }}
           >
-            {t('common.next') || 'ถัดไป'} ›
+            {t('common.next')} ›
           </button>
         </div>
       )}
