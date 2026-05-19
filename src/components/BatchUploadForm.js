@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/lib/LanguageContext'
 
-const MAX_FILES = 10
+const MAX_FILES = 30
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES = [
   'application/pdf',
