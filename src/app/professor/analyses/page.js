@@ -22,7 +22,7 @@ export default function ProfessorHistoryPage() {
     async function load() {
       let { data, error } = await supabase
         .from('analyses')
-        .select('*, profiles(first_name, last_name, student_id, username, role)')
+        .select('*, profiles(first_name, last_name, student_id, username, role, email)')
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -50,28 +50,21 @@ export default function ProfessorHistoryPage() {
           user_id: uid,
           profiles: a.profiles,
           highestScore: a.total_score,
+          bestPosition: a.total_score !== null ? a.job_position : null,
           bestAnalysisId: a.status === 'completed' ? a.id : null,
-          totalAnalyses: 1,
-          completedAnalyses: a.status === 'completed' ? 1 : 0,
-          positions: new Set([a.job_position].filter(Boolean)),
           latestDate: a.created_at,
         }
       } else {
         const u = map[uid]
-        u.totalAnalyses++
-        if (a.status === 'completed') u.completedAnalyses++
         if (a.total_score !== null && (u.highestScore === null || a.total_score > u.highestScore)) {
           u.highestScore = a.total_score
+          u.bestPosition = a.job_position
           u.bestAnalysisId = a.id
         }
-        if (a.job_position) u.positions.add(a.job_position)
         if (a.created_at > u.latestDate) u.latestDate = a.created_at
       }
     })
-    return Object.values(map).map(u => ({
-      ...u,
-      positions: [...u.positions],
-    })).sort((a, b) => b.latestDate.localeCompare(a.latestDate))
+    return Object.values(map).sort((a, b) => b.latestDate.localeCompare(a.latestDate))
   }, [analyses])
 
   // Get unique positions for dropdown
@@ -100,7 +93,7 @@ export default function ProfessorHistoryPage() {
 
       // Position filter
       if (positionFilter !== 'all') {
-        if (!item.positions.includes(positionFilter)) return false
+        if (item.bestPosition !== positionFilter) return false
       }
 
       // Score filter
@@ -375,14 +368,14 @@ function UserSummaryTable({ users, t }) {
   }
 
   function copyToExcel() {
-    const header = ['ชื่อ-นามสกุล', 'รหัสนักศึกษา', 'ประเภท', 'จำนวนวิเคราะห์', 'คะแนนสูงสุด', 'ตำแหน่งที่สมัคร']
+    const header = ['ชื่อ-นามสกุล', 'รหัสนักศึกษา', 'อีเมล', 'ประเภท', 'คะแนนสูงสุด', 'ตำแหน่งที่ได้คะแนนสูงสุด']
     const rows = users.map(u => [
       getName(u),
       u.profiles?.student_id || '-',
+      u.profiles?.email || '-',
       getRoleLabel(u.profiles?.role),
-      u.completedAnalyses,
       u.highestScore !== null ? u.highestScore : '-',
-      u.positions.join(', ')
+      u.bestPosition || '-'
     ])
     const tsv = [header, ...rows].map(row => row.join('\t')).join('\n')
     navigator.clipboard.writeText(tsv).then(() => {
@@ -394,10 +387,10 @@ function UserSummaryTable({ users, t }) {
   const headers = [
     t('history.student') || 'ชื่อ-นามสกุล',
     t('history.studentId') || 'รหัสนักศึกษา',
+    t('history.email') || 'อีเมล',
     t('history.role') || 'ประเภท',
-    t('filter.analyzeCount') || 'จำนวนวิเคราะห์',
     t('history.highScore') || 'คะแนนสูงสุด',
-    t('filter.positions') || 'ตำแหน่งที่สมัคร',
+    t('history.position') || 'ตำแหน่งงาน',
     ''
   ]
 
@@ -445,7 +438,7 @@ function UserSummaryTable({ users, t }) {
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
                 {headers.map((h, i) => (
                   <th key={i} style={{
-                    textAlign: i >= 3 && i <= 4 ? 'center' : 'left',
+                    textAlign: i === 4 ? 'center' : 'left',
                     padding: '14px 16px', fontSize: 13, fontWeight: 600,
                     color: 'var(--text-gray)', background: 'var(--input-bg)',
                     whiteSpace: 'nowrap'
@@ -462,6 +455,9 @@ function UserSummaryTable({ users, t }) {
                   <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-gray)', fontFamily: 'monospace' }}>
                     {u.profiles?.student_id || '-'}
                   </td>
+                  <td style={{ padding: '14px 16px', fontSize: 12, color: 'var(--text-gray)' }}>
+                    {u.profiles?.email || '-'}
+                  </td>
                   <td style={{ padding: '14px 16px' }}>
                     <span style={{
                       fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99,
@@ -470,10 +466,6 @@ function UserSummaryTable({ users, t }) {
                     }}>
                       {getRoleLabel(u.profiles?.role)}
                     </span>
-                  </td>
-                  <td style={{ padding: '14px 16px', textAlign: 'center', fontSize: 13, color: 'var(--text-dark)' }}>
-                    {u.completedAnalyses}
-                    <span style={{ color: 'var(--text-light)', fontSize: 12 }}> / {u.totalAnalyses}</span>
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     {u.highestScore !== null ? (
@@ -484,15 +476,8 @@ function UserSummaryTable({ users, t }) {
                       <span style={{ color: 'var(--text-light)' }}>—</span>
                     )}
                   </td>
-                  <td style={{ padding: '14px 16px', fontSize: 12, color: 'var(--text-gray)' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                      {u.positions.map(pos => (
-                        <span key={pos} style={{
-                          fontSize: 11, padding: '2px 8px', borderRadius: 99,
-                          background: 'var(--input-bg)', border: '1px solid var(--border)'
-                        }}>{pos}</span>
-                      ))}
-                    </div>
+                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)' }}>
+                    {u.bestPosition || '-'}
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     {u.bestAnalysisId && (
@@ -530,6 +515,9 @@ function UserSummaryTable({ users, t }) {
                     {getRoleLabel(u.profiles?.role)}
                   </span>
                 </div>
+                {u.profiles?.email && (
+                  <p style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 2 }}>{u.profiles.email}</p>
+                )}
               </div>
               {u.highestScore !== null ? (
                 <span style={{ fontSize: 16, fontWeight: 700, color: getScoreColor(u.highestScore), flexShrink: 0, marginLeft: 8 }}>
@@ -539,17 +527,9 @@ function UserSummaryTable({ users, t }) {
                 <span style={{ color: 'var(--text-light)', flexShrink: 0, marginLeft: 8 }}>—</span>
               )}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
-              {u.positions.map(pos => (
-                <span key={pos} style={{
-                  fontSize: 11, padding: '2px 8px', borderRadius: 99,
-                  background: 'var(--input-bg)', border: '1px solid var(--border)', color: 'var(--text-gray)'
-                }}>{pos}</span>
-              ))}
-            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <p style={{ fontSize: 12, color: 'var(--text-light)' }}>
-                {t('filter.analyzeCount') || 'วิเคราะห์'}: {u.completedAnalyses}/{u.totalAnalyses}
+              <p style={{ fontSize: 12, color: 'var(--text-gray)' }}>
+                {u.bestPosition || '-'}
               </p>
               {u.bestAnalysisId && (
                 <Link href={`/professor/analyze/${u.bestAnalysisId}`}
