@@ -14,16 +14,18 @@ export default function AuthLayout({ children, requiredRole }) {
 
   useEffect(() => {
     async function checkAuth() {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError) { console.error('Auth error:', userError); router.push('/login'); return }
       if (!user) { router.push('/login'); return }
 
-      const { data } = await supabase
+      const { data, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
 
-      if (!data) { router.push('/login'); return }
+      if (profileError) { console.error('Profile error:', profileError) }
+      if (!data) { console.error('No profile found for user:', user.id); router.push('/login'); return }
 
       if (requiredRole && data.role !== requiredRole) {
         if (data.role === 'admin') router.push('/admin')
