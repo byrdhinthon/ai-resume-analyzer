@@ -34,6 +34,9 @@ export default function ScoreOverview({ score, label }) {
         <span style={{ fontSize: 52, fontWeight: 700, color: 'var(--text-dark)', lineHeight: 1 }}>
           {score}
         </span>
+        <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-light)', marginTop: 2 }}>
+          /100
+        </span>
       </div>
 
       <p style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-dark)', marginBottom: 8 }}>

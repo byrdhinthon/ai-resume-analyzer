@@ -160,7 +160,7 @@ export default function ProfessorHistoryPage() {
             {showFilters && (
               <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {/* Row 1: Search + Role */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
                   <div>
                     <label style={{ fontSize: 12, color: 'var(--text-gray)', display: 'block', marginBottom: 6 }}>
                       {t('filter.search')}
@@ -201,7 +201,7 @@ export default function ProfessorHistoryPage() {
                 </div>
 
                 {/* Row 2: Position + Score range */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
                   <div>
                     <label style={{ fontSize: 12, color: 'var(--text-gray)', display: 'block', marginBottom: 6 }}>
                       {t('filter.position')}
@@ -368,7 +368,7 @@ function UserSummaryTable({ users, t }) {
   }
 
   function copyToExcel() {
-    const header = ['ประเภท', 'รหัสนักศึกษา', 'ชื่อ-นามสกุล', 'อีเมล', 'คะแนนสูงสุด', 'ตำแหน่งงาน']
+    const header = [t('history.role'), t('history.studentId'), t('history.name'), t('history.email'), t('history.score'), t('history.position')]
     const rows = users.map(u => [
       getRoleLabel(u.profiles?.role),
       u.profiles?.student_id || '-',

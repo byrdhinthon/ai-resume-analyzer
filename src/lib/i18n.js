@@ -163,6 +163,7 @@ const translations = {
     'admin.manageCriteria': 'จัดการเกณฑ์ประเมิน',
     'admin.manageCriteriaDesc': 'กำหนดเกณฑ์การให้คะแนน',
     'admin.topPositions': 'ตำแหน่งงานยอดนิยม',
+    'admin.time': 'ครั้ง',
     'admin.times': 'ครั้ง',
 
     'result.contactInfo': 'ข้อมูลติดต่อ',
@@ -464,6 +465,7 @@ const translations = {
     'admin.manageCriteria': 'Scoring Criteria',
     'admin.manageCriteriaDesc': 'Configure scoring criteria',
     'admin.topPositions': 'Top Positions',
+    'admin.time': 'time',
     'admin.times': 'times',
 
     'result.contactInfo': 'Contact Info',

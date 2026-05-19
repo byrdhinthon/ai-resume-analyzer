@@ -43,7 +43,7 @@ const icons = {
   ),
 }
 
-export default function Sidebar({ role }) {
+export default function Sidebar({ role, requiredRole }) {
   const pathname = usePathname()
   const { t } = useLanguage()
   const [open, setOpen] = useState(false)
@@ -69,7 +69,12 @@ export default function Sidebar({ role }) {
     { href: '/professor/analyses', label: t('sidebar.history'), icon: icons.history },
   ]
 
-  const links = role === 'admin' ? adminLinks
+  // Show links based on the page context (requiredRole), not just the user's role.
+  // This ensures admin users see member links when visiting /dashboard pages.
+  const links = requiredRole === 'member' ? memberLinks
+    : requiredRole === 'professor' ? professorLinks
+    : requiredRole === 'admin' ? adminLinks
+    : role === 'admin' ? adminLinks
     : role === 'professor' ? professorLinks
     : memberLinks
 

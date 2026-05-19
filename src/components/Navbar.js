@@ -3,10 +3,11 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
+import LanguageToggle from '@/components/LanguageToggle'
 
 export default function Navbar({ profile }) {
   const router = useRouter()
-  const { locale, toggleLanguage, t } = useLanguage()
+  const { t } = useLanguage()
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -31,22 +32,7 @@ export default function Navbar({ profile }) {
 
         {/* Right */}
         <div className="flex items-center gap-3">
-          <button
-            onClick={toggleLanguage}
-            aria-label={locale === 'th' ? 'Switch to English' : 'เปลี่ยนเป็นภาษาไทย'}
-            style={{
-              background: 'var(--input-bg)',
-              border: 'none',
-              borderRadius: 'var(--radius-pill)',
-              padding: '6px 14px',
-              fontSize: 13,
-              fontWeight: 600,
-              color: 'var(--text-gray)',
-              cursor: 'pointer'
-            }}
-          >
-            {t('nav.language')}
-          </button>
+          <LanguageToggle />
           <span style={{ fontSize: 14, color: 'var(--text-gray)' }} className="hidden sm:inline">
             {profile?.username}
           </span>

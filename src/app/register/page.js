@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/LanguageContext'
+import LanguageToggle from '@/components/LanguageToggle'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -61,7 +62,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
       {/* Minimal navbar */}
-      <nav style={{ background: 'transparent', padding: '20px 32px', display: 'flex', alignItems: 'center' }}>
+      <nav style={{ background: 'transparent', padding: '20px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div className="flex items-center gap-2">
           <div className="icon-wrap" style={{ width: 36, height: 36, borderRadius: 10 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -71,6 +72,7 @@ export default function RegisterPage() {
           </div>
           <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--text-dark)' }}>AI Resume Analyzer</span>
         </div>
+        <LanguageToggle />
       </nav>
 
       {/* Form */}
