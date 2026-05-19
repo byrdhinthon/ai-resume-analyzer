@@ -221,6 +221,7 @@ const translations = {
 
     'auth.loginSubtitle': 'เข้าสู่ระบบเพื่อวิเคราะห์เรซูเม่ของคุณ',
     'auth.profileError': 'ไม่สามารถโหลดโปรไฟล์ได้ กรุณาลองใหม่',
+    'auth.emailNotConfirmed': 'กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ โปรดตรวจสอบกล่องจดหมายของคุณ',
     'auth.registerSubtitle': 'สร้างบัญชีของคุณเพื่อเริ่มต้นใช้งาน',
     'auth.forgotSubtitle': 'กรอกอีเมลของคุณ เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้',
     'auth.resetSubtitle': 'เลือกรหัสผ่านใหม่สำหรับบัญชีของคุณ',
@@ -483,6 +484,7 @@ const translations = {
 
     'auth.loginSubtitle': 'Sign in to analyze your resume',
     'auth.profileError': 'Could not load profile. Please try again.',
+    'auth.emailNotConfirmed': 'Please verify your email before signing in. Check your inbox.',
     'auth.registerSubtitle': 'Create your account to get started',
     'auth.forgotSubtitle': "Enter your email and we'll send you a reset link",
     'auth.resetSubtitle': 'Choose a new password for your account',

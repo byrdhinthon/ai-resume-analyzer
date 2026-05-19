@@ -20,7 +20,15 @@ export default function LoginPage() {
 
     try {
       const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-      if (authError) { setError(authError.message); setLoading(false); return }
+      if (authError) {
+        if (authError.message.includes('Email not confirmed')) {
+          setError(t('auth.emailNotConfirmed'))
+        } else {
+          setError(authError.message)
+        }
+        setLoading(false)
+        return
+      }
 
       if (!data?.user) { setError('Login failed: no user returned'); setLoading(false); return }
 
