@@ -1,49 +1,33 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
-import { useLanguage } from '@/lib/LanguageContext'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function AuthLayout({ children, requiredRole }) {
   const router = useRouter()
-  const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const { t } = useLanguage()
+  const { user, profile, loading } = useProfile()
 
   useEffect(() => {
-    async function checkAuth() {
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      if (userError) { console.error('Auth error:', userError); router.push('/login'); return }
-      if (!user) { router.push('/login'); return }
+    if (loading) return
 
-      const { data, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (profileError) { console.error('Profile error:', profileError) }
-      if (!data) { console.error('No profile found for user:', user.id); router.push('/login'); return }
-
-      // Admin can access everything; professor pages are also open to admin
-      const hasAccess = !requiredRole
-        || data.role === requiredRole
-        || (data.role === 'admin' && (requiredRole === 'professor' || requiredRole === 'member'))
-      if (!hasAccess) {
-        if (data.role === 'professor') router.push('/professor')
-        else router.push('/dashboard')
-        return
-      }
-
-      setProfile(data)
-      setLoading(false)
+    if (!user || !profile) {
+      router.push('/login')
+      return
     }
-    checkAuth()
-  }, [router, requiredRole])
 
-  if (loading) {
+    // Admin can access everything; professor pages are also open to admin
+    const hasAccess = !requiredRole
+      || profile.role === requiredRole
+      || (profile.role === 'admin' && (requiredRole === 'professor' || requiredRole === 'member'))
+    if (!hasAccess) {
+      if (profile.role === 'professor') router.push('/professor')
+      else router.push('/dashboard')
+    }
+  }, [loading, user, profile, router, requiredRole])
+
+  if (loading || !user || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
         <div style={{

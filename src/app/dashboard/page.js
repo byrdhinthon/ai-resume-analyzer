@@ -4,15 +4,16 @@ import { supabase } from '@/lib/supabase'
 import AuthLayout from '@/components/AuthLayout'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function DashboardPage() {
   const { t } = useLanguage()
+  const { user } = useProfile()
   const [stats, setStats] = useState({ count: 0, average: 0, latest: null })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function loadStats() {
-      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
       const { data: analyses } = await supabase
@@ -30,7 +31,7 @@ export default function DashboardPage() {
       setLoading(false)
     }
     loadStats()
-  }, [])
+  }, [user])
 
   const getScoreColor = (score) => {
     if (score >= 80) return '#16A34A'

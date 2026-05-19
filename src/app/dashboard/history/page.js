@@ -4,15 +4,16 @@ import { supabase } from '@/lib/supabase'
 import AuthLayout from '@/components/AuthLayout'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
+import { useProfile } from '@/lib/ProfileContext'
 
 export default function HistoryPage() {
   const { t } = useLanguage()
+  const { user } = useProfile()
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function loadHistory() {
-      const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
       const { data } = await supabase
@@ -25,7 +26,7 @@ export default function HistoryPage() {
       setLoading(false)
     }
     loadHistory()
-  }, [])
+  }, [user])
 
   const getScoreColor = (score) => {
     if (score >= 80) return '#16A34A'
