@@ -27,9 +27,12 @@ export default function AuthLayout({ children, requiredRole }) {
       if (profileError) { console.error('Profile error:', profileError) }
       if (!data) { console.error('No profile found for user:', user.id); router.push('/login'); return }
 
-      if (requiredRole && data.role !== requiredRole) {
-        if (data.role === 'admin') router.push('/admin')
-        else if (data.role === 'professor') router.push('/professor')
+      // Admin can access everything; professor pages are also open to admin
+      const hasAccess = !requiredRole
+        || data.role === requiredRole
+        || (data.role === 'admin' && (requiredRole === 'professor' || requiredRole === 'member'))
+      if (!hasAccess) {
+        if (data.role === 'professor') router.push('/professor')
         else router.push('/dashboard')
         return
       }

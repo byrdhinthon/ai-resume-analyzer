@@ -59,6 +59,8 @@ export default function Sidebar({ role }) {
     { href: '/admin/users', label: t('sidebar.users'), icon: icons.users },
     { href: '/admin/positions', label: t('sidebar.positions'), icon: icons.briefcase },
     { href: '/admin/criteria', label: t('sidebar.criteria'), icon: icons.criteria },
+    { href: '/professor/analyze', label: t('sidebar.analyze'), icon: icons.upload },
+    { href: '/professor/analyses', label: t('sidebar.history'), icon: icons.history },
   ]
 
   const professorLinks = [
@@ -107,7 +109,7 @@ export default function Sidebar({ role }) {
       >
         <ul className="space-y-1 mt-8 md:mt-0">
           {links.map((link) => {
-            const active = pathname === link.href
+            const active = pathname === link.href || (link.href !== '/' && link.href !== '/admin' && link.href !== '/professor' && link.href !== '/dashboard' && pathname.startsWith(link.href))
             return (
               <li key={link.href}>
                 <Link
