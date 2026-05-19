@@ -208,6 +208,10 @@ const translations = {
     'auth.lastName': 'นามสกุล',
     'auth.lastNamePlaceholder': 'กรอกนามสกุล',
 
+    'auth.checkEmailTitle': 'ตรวจสอบอีเมลของคุณ',
+    'auth.checkEmailDesc': 'เราได้ส่งลิงก์ยืนยันไปที่อีเมลของคุณแล้ว กรุณาคลิกลิงก์ในอีเมลเพื่อเปิดใช้งานบัญชี',
+    'auth.checkEmailTip': 'หากไม่พบอีเมล กรุณาตรวจสอบในโฟลเดอร์ Spam หรือ Junk',
+
     'auth.loginSubtitle': 'เข้าสู่ระบบเพื่อวิเคราะห์เรซูเม่ของคุณ',
     'auth.registerSubtitle': 'สร้างบัญชีของคุณเพื่อเริ่มต้นใช้งาน',
     'auth.forgotSubtitle': 'กรอกอีเมลของคุณ เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้',
@@ -457,6 +461,10 @@ const translations = {
     'auth.firstNameRequired': 'Please enter your first name',
     'auth.lastName': 'Last Name',
     'auth.lastNamePlaceholder': 'Enter last name',
+
+    'auth.checkEmailTitle': 'Check your email',
+    'auth.checkEmailDesc': 'We sent a confirmation link to your email. Please click the link to activate your account.',
+    'auth.checkEmailTip': 'If you don\'t see the email, please check your Spam or Junk folder.',
 
     'auth.loginSubtitle': 'Sign in to analyze your resume',
     'auth.registerSubtitle': 'Create your account to get started',

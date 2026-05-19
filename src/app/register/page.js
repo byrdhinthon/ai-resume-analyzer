@@ -55,7 +55,7 @@ export default function RegisterPage() {
       return
     }
 
-    router.push('/login?registered=1')
+    router.push('/check-email')
   }
 
   return (
