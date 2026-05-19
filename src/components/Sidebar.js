@@ -69,11 +69,10 @@ export default function Sidebar({ role, requiredRole }) {
     { href: '/professor/analyses', label: t('sidebar.history'), icon: icons.history },
   ]
 
-  // Show links based on the page context (requiredRole), not just the user's role.
-  // This ensures admin users see member links when visiting /dashboard pages.
-  const links = requiredRole === 'member' ? memberLinks
-    : requiredRole === 'professor' ? professorLinks
-    : requiredRole === 'admin' ? adminLinks
+  // Show links based on page context + actual role.
+  // Admin sees member sidebar only on /dashboard pages; otherwise keeps full admin sidebar.
+  // Professor always sees professor sidebar. Member always sees member sidebar.
+  const links = (role === 'admin' && requiredRole === 'member') ? memberLinks
     : role === 'admin' ? adminLinks
     : role === 'professor' ? professorLinks
     : memberLinks
