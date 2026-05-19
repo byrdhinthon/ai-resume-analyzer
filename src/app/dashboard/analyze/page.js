@@ -83,7 +83,7 @@ export default function AnalyzePage() {
           job_position: jobPosition,
           status: 'pending'
         })
-        .select()
+        .select('id')
         .single()
 
       if (insertError) { setError(insertError.message); setLoading(false); return }

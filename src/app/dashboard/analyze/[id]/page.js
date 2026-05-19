@@ -12,23 +12,40 @@ export default function AnalysisResultPage({ params }) {
   const { id } = use(params)
   const { t } = useLanguage()
   const [analysis, setAnalysis] = useState(null)
+  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState('')
 
-  const categories = [
-    { key: 'contact_info', label: t('result.contactInfo'), max: 10 },
-    { key: 'skills', label: t('result.skills'), max: 30 },
-    { key: 'experience', label: t('result.experience'), max: 25 },
-    { key: 'education', label: t('result.education'), max: 10 },
-    { key: 'structure', label: t('result.structure'), max: 25 }
+  const defaultCategories = [
+    { key: 'contactInfo', label: t('result.contactInfo'), max: 10 },
+    { key: 'skills', label: t('result.skills'), max: 25 },
+    { key: 'experience', label: t('result.experience'), max: 30 },
+    { key: 'education', label: t('result.education'), max: 15 },
+    { key: 'structure', label: t('result.structure'), max: 20 },
   ]
 
   useEffect(() => { loadAnalysis() }, [id])
 
   async function loadAnalysis() {
-    const { data, error } = await supabase
-      .from('analyses').select('*').eq('id', id).single()
+    const [{ data, error }, { data: criteriaData }] = await Promise.all([
+      supabase.from('analyses')
+        .select('id, user_id, file_name, file_url, job_position, total_score, scores, suggestions, status, created_at')
+        .eq('id', id).single(),
+      supabase.from('scoring_criteria')
+        .select('category, max_score')
+        .order('id')
+    ])
+
+    if (criteriaData && criteriaData.length > 0) {
+      setCategories(criteriaData.map(x => ({
+        key: x.category,
+        label: t(`result.${x.category}`) || x.category,
+        max: x.max_score
+      })))
+    } else {
+      setCategories(defaultCategories)
+    }
 
     if (error || !data) {
       setError(t('result.notFound') || 'ไม่พบข้อมูลการวิเคราะห์')

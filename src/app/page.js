@@ -1,37 +1,26 @@
 'use client'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { useProfile } from '@/lib/ProfileContext'
 import { useLanguage } from '@/lib/LanguageContext'
 
 export default function Home() {
   const router = useRouter()
   const { t } = useLanguage()
+  const { user, profile, loading } = useProfile()
 
   useEffect(() => {
-    async function checkAuth() {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (error || !user) {
-        // ถ้ายังไม่ login → ไปหน้า login
-        router.push('/login')
-        return
-      }
+    if (loading) return
 
-      // ถ้า login อยู่แล้ว → ไป dashboard
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      if (profile?.role === 'admin') {
-        router.push('/admin')
-      } else {
-        router.push('/dashboard')
-      }
+    if (!user) {
+      router.push('/login')
+      return
     }
-    checkAuth()
-  }, [router])
+
+    if (profile?.role === 'admin') router.push('/admin')
+    else if (profile?.role === 'professor') router.push('/professor')
+    else router.push('/dashboard')
+  }, [loading, user, profile, router])
 
   return (
     <div className="min-h-screen flex items-center justify-center">

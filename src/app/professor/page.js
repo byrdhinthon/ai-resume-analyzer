@@ -12,12 +12,13 @@ export default function ProfessorDashboard() {
 
   useEffect(() => {
     async function loadStats() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('analyses')
         .select('total_score, user_id, status')
         .eq('status', 'completed')
 
-      if (data && data.length > 0) {
+      if (error || !data) { setLoading(false); return }
+      if (data.length > 0) {
         const uniqueStudents = new Set(data.map(a => a.user_id)).size
         const avg = Math.round(
           data.reduce((sum, a) => sum + (a.total_score || 0), 0) / data.length

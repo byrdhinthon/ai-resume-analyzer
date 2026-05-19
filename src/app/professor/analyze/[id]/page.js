@@ -15,26 +15,23 @@ export default function ProfessorAnalysisDetail({ params }) {
 
   useEffect(() => {
     async function load() {
+      // Join analysis + profile in one query (eliminates N+1)
       const { data: a } = await supabase
         .from('analyses')
-        .select('*')
+        .select('id, user_id, file_name, file_url, job_position, total_score, scores, suggestions, status, created_at, profiles(first_name, last_name, student_id, username)')
         .eq('id', id)
         .single()
 
       if (!a) { setLoading(false); return }
 
-      const { data: p } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, student_id, username')
-        .eq('id', a.user_id)
-        .single()
+      const p = a.profiles || null
 
       const { data: c } = await supabase
         .from('scoring_criteria')
-        .select('*')
+        .select('category, max_score')
         .order('id')
 
-      setAnalysis(a)
+      setAnalysis({ ...a, profiles: undefined })
       setStudent(p)
       if (c && c.length > 0) {
         setCategories(c.map(x => ({
