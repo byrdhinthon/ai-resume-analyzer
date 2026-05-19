@@ -15,7 +15,7 @@ export default function ProfessorHistoryPage() {
     async function load() {
       let { data, error } = await supabase
         .from('analyses')
-        .select('*, profiles(first_name, last_name, student_id, username)')
+        .select('*, profiles(first_name, last_name, student_id, username, role)')
         .order('created_at', { ascending: false })
 
       if (error) {
