@@ -1,13 +1,15 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import AuthLayout from '@/components/AuthLayout'
 import BatchUploadForm from '@/components/BatchUploadForm'
 import { useLanguage } from '@/lib/LanguageContext'
 
 export default function ProfessorAnalyzePage() {
   const router = useRouter()
+  const pathname = usePathname()
+  const basePath = pathname.startsWith('/admin') ? '/admin' : '/professor'
   const { t } = useLanguage()
   const [jobPositions, setJobPositions] = useState([])
   const [selectedPosition, setSelectedPosition] = useState('')
@@ -29,7 +31,7 @@ export default function ProfessorAnalyzePage() {
   const jobPosition = useCustom ? customPosition.trim() : selectedPosition
 
   return (
-    <AuthLayout requiredRole="professor">
+    <AuthLayout requiredRole={basePath === '/admin' ? 'admin' : 'professor'}>
       <div>
         <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-dark)', marginBottom: 24 }}>
           {t('professor.analyzeTitle')}
@@ -116,9 +118,9 @@ export default function ProfessorAnalyzePage() {
             jobPosition={jobPosition}
             onComplete={(ids) => {
               if (ids.length === 1) {
-                router.push(`/professor/analyze/${ids[0]}`)
+                router.push(`${basePath}/analyze/${ids[0]}`)
               } else {
-                router.push('/professor/analyses')
+                router.push(`${basePath}/analyses`)
               }
             }}
           />

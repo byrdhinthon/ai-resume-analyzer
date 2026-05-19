@@ -1,12 +1,15 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
+import { usePathname } from 'next/navigation'
 import AuthLayout from '@/components/AuthLayout'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
 
 export default function ProfessorHistoryPage() {
   const { t } = useLanguage()
+  const pathname = usePathname()
+  const basePath = pathname.startsWith('/admin') ? '/admin' : '/professor'
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -114,13 +117,13 @@ export default function ProfessorHistoryPage() {
   }
 
   return (
-    <AuthLayout requiredRole="professor">
+    <AuthLayout requiredRole={basePath === '/admin' ? 'admin' : 'professor'}>
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-dark)' }}>
             {t('professor.historyTitle')}
           </h1>
-          <Link href="/professor/analyze" className="btn-primary" style={{ textDecoration: 'none', padding: '8px 18px', fontSize: 13 }}>
+          <Link href={`${basePath}/analyze`} className="btn-primary" style={{ textDecoration: 'none', padding: '8px 18px', fontSize: 13 }}>
             {t('history.newAnalysis')}
           </Link>
         </div>
@@ -481,7 +484,7 @@ function UserSummaryTable({ users, t }) {
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     {u.bestAnalysisId && (
-                      <Link href={`/professor/analyze/${u.bestAnalysisId}`}
+                      <Link href={`${basePath}/analyze/${u.bestAnalysisId}`}
                         style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
                         {t('history.viewDetail')}
                       </Link>
@@ -532,7 +535,7 @@ function UserSummaryTable({ users, t }) {
                 {u.bestPosition || '-'}
               </p>
               {u.bestAnalysisId && (
-                <Link href={`/professor/analyze/${u.bestAnalysisId}`}
+                <Link href={`${basePath}/analyze/${u.bestAnalysisId}`}
                   style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
                   {t('history.viewDetail')}
                 </Link>

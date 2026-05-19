@@ -59,8 +59,8 @@ export default function Sidebar({ role, requiredRole }) {
     { href: '/admin/users', label: t('sidebar.users'), icon: icons.users },
     { href: '/admin/positions', label: t('sidebar.positions'), icon: icons.briefcase },
     { href: '/admin/criteria', label: t('sidebar.criteria'), icon: icons.criteria },
-    { href: '/professor/analyze', label: t('sidebar.analyze'), icon: icons.upload },
-    { href: '/professor/analyses', label: t('sidebar.history'), icon: icons.history },
+    { href: '/admin/analyze', label: t('sidebar.analyze'), icon: icons.upload },
+    { href: '/admin/analyses', label: t('sidebar.history'), icon: icons.history },
   ]
 
   const professorLinks = [
