@@ -18,15 +18,30 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-    if (authError) { setError(authError.message); setLoading(false); return }
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      if (authError) { setError(authError.message); setLoading(false); return }
 
-    const { data: profile } = await supabase
-      .from('profiles').select('role').eq('id', data.user.id).single()
+      if (!data?.user) { setError('Login failed: no user returned'); setLoading(false); return }
 
-    if (profile?.role === 'admin') router.push('/admin')
-    else if (profile?.role === 'professor') router.push('/professor')
-    else router.push('/dashboard')
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles').select('role').eq('id', data.user.id).single()
+
+      if (profileError || !profile) {
+        console.error('Profile fetch error:', profileError)
+        setError(t('auth.profileError') || 'ไม่สามารถโหลดโปรไฟล์ได้ กรุณาลองใหม่')
+        setLoading(false)
+        return
+      }
+
+      if (profile.role === 'admin') router.push('/admin')
+      else if (profile.role === 'professor') router.push('/professor')
+      else router.push('/dashboard')
+    } catch (err) {
+      console.error('Login error:', err)
+      setError(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่')
+      setLoading(false)
+    }
   }
 
   return (
