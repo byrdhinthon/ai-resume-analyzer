@@ -22,13 +22,13 @@ export default function ProfessorHistoryPage() {
     async function load() {
       let { data, error } = await supabase
         .from('analyses')
-        .select('*, profiles(first_name, last_name, student_id, username, role, email)')
+        .select('id, user_id, file_name, job_position, total_score, status, created_at, profiles(first_name, last_name, student_id, username, role, email)')
         .order('created_at', { ascending: false })
 
       if (error) {
         const res = await supabase
           .from('analyses')
-          .select('*')
+          .select('id, user_id, file_name, job_position, total_score, status, created_at')
           .order('created_at', { ascending: false })
         data = res.data
       }

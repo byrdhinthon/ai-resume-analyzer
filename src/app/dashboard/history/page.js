@@ -17,7 +17,7 @@ export default function HistoryPage() {
 
       const { data } = await supabase
         .from('analyses')
-        .select('*')
+        .select('id, file_name, job_position, total_score, status, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 

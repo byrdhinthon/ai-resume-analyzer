@@ -17,7 +17,7 @@ export default function DashboardPage() {
 
       const { data: analyses } = await supabase
         .from('analyses')
-        .select('*')
+        .select('id, file_name, job_position, total_score, created_at')
         .eq('user_id', user.id)
         .eq('status', 'completed')
         .order('created_at', { ascending: false })

@@ -65,7 +65,7 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
         const { data: analysis, error: insertError } = await supabase
           .from('analyses')
           .insert({ user_id: user.id, file_url: fileName, file_name: file.name, job_position: jobPosition, status: 'pending' })
-          .select().single()
+          .select('id').single()
         if (insertError) { setProgress(prev => ({ ...prev, [fileKey]: 'error' })); continue }
 
         setProgress(prev => ({ ...prev, [fileKey]: 'analyzing' }))
