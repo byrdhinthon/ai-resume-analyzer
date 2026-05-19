@@ -51,7 +51,7 @@ export default function ProfessorHistoryPage() {
           profiles: a.profiles,
           highestScore: a.total_score,
           bestPosition: a.total_score !== null ? a.job_position : null,
-          bestAnalysisId: a.status === 'completed' ? a.id : null,
+          bestAnalysisId: (a.status === 'completed' && a.total_score !== null) ? a.id : null,
           latestDate: a.created_at,
         }
       } else {
@@ -64,7 +64,7 @@ export default function ProfessorHistoryPage() {
         if (a.created_at > u.latestDate) u.latestDate = a.created_at
       }
     })
-    return Object.values(map).sort((a, b) => b.latestDate.localeCompare(a.latestDate))
+    return Object.values(map).sort((a, b) => new Date(b.latestDate) - new Date(a.latestDate))
   }, [analyses])
 
   // Get unique positions for dropdown
