@@ -368,12 +368,12 @@ function UserSummaryTable({ users, t }) {
   }
 
   function copyToExcel() {
-    const header = ['ชื่อ-นามสกุล', 'รหัสนักศึกษา', 'อีเมล', 'ประเภท', 'คะแนนสูงสุด', 'ตำแหน่งที่ได้คะแนนสูงสุด']
+    const header = ['ประเภท', 'รหัสนักศึกษา', 'ชื่อ-นามสกุล', 'อีเมล', 'คะแนนสูงสุด', 'ตำแหน่งงาน']
     const rows = users.map(u => [
-      getName(u),
-      u.profiles?.student_id || '-',
-      u.profiles?.email || '-',
       getRoleLabel(u.profiles?.role),
+      u.profiles?.student_id || '-',
+      getName(u),
+      u.profiles?.email || '-',
       u.highestScore !== null ? u.highestScore : '-',
       u.bestPosition || '-'
     ])
@@ -385,10 +385,10 @@ function UserSummaryTable({ users, t }) {
   }
 
   const headers = [
-    t('history.student') || 'ชื่อ-นามสกุล',
-    t('history.studentId') || 'รหัสนักศึกษา',
-    t('history.email') || 'อีเมล',
     t('history.role') || 'ประเภท',
+    t('history.studentId') || 'รหัสนักศึกษา',
+    t('history.student') || 'ชื่อ-นามสกุล',
+    t('history.email') || 'อีเมล',
     t('history.highScore') || 'คะแนนสูงสุด',
     t('history.position') || 'ตำแหน่งงาน',
     ''
@@ -449,15 +449,6 @@ function UserSummaryTable({ users, t }) {
             <tbody>
               {users.map((u) => (
                 <tr key={u.user_id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)', fontWeight: 500 }}>
-                    {getName(u)}
-                  </td>
-                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-gray)', fontFamily: 'monospace' }}>
-                    {u.profiles?.student_id || '-'}
-                  </td>
-                  <td style={{ padding: '14px 16px', fontSize: 12, color: 'var(--text-gray)' }}>
-                    {u.profiles?.email || '-'}
-                  </td>
                   <td style={{ padding: '14px 16px' }}>
                     <span style={{
                       fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99,
@@ -466,6 +457,15 @@ function UserSummaryTable({ users, t }) {
                     }}>
                       {getRoleLabel(u.profiles?.role)}
                     </span>
+                  </td>
+                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-gray)', fontFamily: 'monospace' }}>
+                    {u.profiles?.student_id || '-'}
+                  </td>
+                  <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)', fontWeight: 500 }}>
+                    {getName(u)}
+                  </td>
+                  <td style={{ padding: '14px 16px', fontSize: 12, color: 'var(--text-gray)' }}>
+                    {u.profiles?.email || '-'}
                   </td>
                   <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                     {u.highestScore !== null ? (
