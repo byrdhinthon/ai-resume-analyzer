@@ -13,6 +13,17 @@ export default function ProfessorHistoryPage() {
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // View mode: 'users' (group by user) or 'files' (individual files)
+  const [viewMode, setViewMode] = useState('users')
+
+  // Check URL param on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('view') === 'files') setViewMode('files')
+    }
+  }, [])
+
   // Filter states
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
@@ -25,7 +36,7 @@ export default function ProfessorHistoryPage() {
     async function load() {
       const { data } = await supabase
         .from('analyses')
-        .select('id, user_id, file_name, job_position, total_score, status, created_at, profiles(first_name, last_name, student_id, username, role, email)')
+        .select('id, user_id, file_name, job_position, total_score, status, created_at, batch_id, extracted_name, profiles(first_name, last_name, student_id, username, role, email)')
         .order('created_at', { ascending: false })
         .limit(2000)
 
@@ -106,6 +117,36 @@ export default function ProfessorHistoryPage() {
     })
   }, [userSummaries, search, roleFilter, positionFilter, scoreMin, scoreMax])
 
+  // Filtered individual files (for "all files" view)
+  const filteredFiles = useMemo(() => {
+    return analyses.filter(a => {
+      if (search.trim()) {
+        const q = search.toLowerCase()
+        const name = a.profiles?.first_name
+          ? `${a.profiles.first_name} ${a.profiles.last_name || ''}`.toLowerCase()
+          : (a.profiles?.username || '').toLowerCase()
+        const sid = (a.profiles?.student_id || '').toLowerCase()
+        const fname = (a.file_name || '').toLowerCase()
+        if (!name.includes(q) && !sid.includes(q) && !fname.includes(q)) return false
+      }
+      if (roleFilter !== 'all') {
+        if ((a.profiles?.role || 'member') !== roleFilter) return false
+      }
+      if (positionFilter !== 'all') {
+        if (a.job_position !== positionFilter) return false
+      }
+      if (scoreMin !== '') {
+        const min = Number(scoreMin)
+        if (a.total_score === null || a.total_score < min) return false
+      }
+      if (scoreMax !== '') {
+        const max = Number(scoreMax)
+        if (a.total_score === null || a.total_score > max) return false
+      }
+      return true
+    })
+  }, [analyses, search, roleFilter, positionFilter, scoreMin, scoreMax])
+
   const hasActiveFilter = search || roleFilter !== 'all' || positionFilter !== 'all' || scoreMin !== '' || scoreMax !== ''
 
   function clearFilters() {
@@ -127,6 +168,31 @@ export default function ProfessorHistoryPage() {
             {t('history.newAnalysis')}
           </Link>
         </div>
+
+        {/* View mode toggle */}
+        {!loading && analyses.length > 0 && (
+          <div style={{ display: 'flex', gap: 4, marginBottom: 16, background: 'var(--input-bg)', borderRadius: 'var(--radius-sm)', padding: 4, width: 'fit-content' }}>
+            {[
+              { key: 'users', label: t('view.groupByUser') },
+              { key: 'files', label: t('view.allFiles') }
+            ].map(opt => (
+              <button
+                key={opt.key}
+                onClick={() => setViewMode(opt.key)}
+                style={{
+                  padding: '8px 18px', fontSize: 13, fontWeight: 500,
+                  borderRadius: 'var(--radius-sm)', border: 'none', cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  background: viewMode === opt.key ? 'var(--card-bg, #fff)' : 'transparent',
+                  color: viewMode === opt.key ? 'var(--primary)' : 'var(--text-gray)',
+                  boxShadow: viewMode === opt.key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Filter section */}
         {!loading && analyses.length > 0 && (
@@ -267,8 +333,11 @@ export default function ProfessorHistoryPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontSize: 13, color: 'var(--text-gray)' }}>
                     {t('filter.showing')}{' '}
-                    <strong style={{ color: 'var(--text-dark)' }}>{filtered.length}</strong>{' '}
-                    {t('filter.of')} {userSummaries.length} {t('filter.people')}
+                    <strong style={{ color: 'var(--text-dark)' }}>
+                      {viewMode === 'users' ? filtered.length : filteredFiles.length}
+                    </strong>{' '}
+                    {t('filter.of')} {viewMode === 'users' ? userSummaries.length : analyses.length}{' '}
+                    {viewMode === 'users' ? t('filter.people') : t('filter.files')}
                   </p>
                   {hasActiveFilter && (
                     <button
@@ -317,7 +386,7 @@ export default function ProfessorHistoryPage() {
               {t('professor.startNow')}
             </p>
           </div>
-        ) : filtered.length === 0 ? (
+        ) : (viewMode === 'users' ? filtered.length === 0 : filteredFiles.length === 0) ? (
           <div className="card" style={{ textAlign: 'center', padding: '48px 20px' }}>
             <p style={{ fontSize: 15, color: 'var(--text-gray)', marginBottom: 8 }}>
               {t('filter.noResults')}
@@ -332,9 +401,15 @@ export default function ProfessorHistoryPage() {
               {t('filter.clear')}
             </button>
           </div>
-        ) : (
+        ) : viewMode === 'users' ? (
           <UserSummaryTable
             users={filtered}
+            t={t}
+            basePath={basePath}
+          />
+        ) : (
+          <AllFilesTable
+            files={filteredFiles}
             t={t}
             basePath={basePath}
           />
@@ -548,38 +623,268 @@ function UserSummaryTable({ users, t, basePath }) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div style={{
-          display: 'flex', justifyContent: 'center', alignItems: 'center',
-          gap: 8, marginTop: 16
-        }}>
-          <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-            style={{
-              padding: '6px 14px', fontSize: 13, borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)', background: 'var(--surface)',
-              color: page === 1 ? 'var(--text-light)' : 'var(--text-dark)',
-              cursor: page === 1 ? 'default' : 'pointer'
-            }}
-          >
-            ‹ {t('common.prev')}
-          </button>
-          <span style={{ fontSize: 13, color: 'var(--text-gray)' }}>
-            {page} / {totalPages}
-          </span>
-          <button
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            style={{
-              padding: '6px 14px', fontSize: 13, borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)', background: 'var(--surface)',
-              color: page === totalPages ? 'var(--text-light)' : 'var(--text-dark)',
-              cursor: page === totalPages ? 'default' : 'pointer'
-            }}
-          >
-            {t('common.next')} ›
-          </button>
+        <Pagination page={page} totalPages={totalPages} setPage={setPage} t={t} />
+      )}
+    </>
+  )
+}
+
+function Pagination({ page, totalPages, setPage, t }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'center', alignItems: 'center',
+      gap: 8, marginTop: 16
+    }}>
+      <button
+        onClick={() => setPage(p => Math.max(1, p - 1))}
+        disabled={page === 1}
+        style={{
+          padding: '6px 14px', fontSize: 13, borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--border)', background: 'var(--surface)',
+          color: page === 1 ? 'var(--text-light)' : 'var(--text-dark)',
+          cursor: page === 1 ? 'default' : 'pointer'
+        }}
+      >
+        ‹ {t('common.prev')}
+      </button>
+      <span style={{ fontSize: 13, color: 'var(--text-gray)' }}>
+        {page} / {totalPages}
+      </span>
+      <button
+        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+        disabled={page === totalPages}
+        style={{
+          padding: '6px 14px', fontSize: 13, borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--border)', background: 'var(--surface)',
+          color: page === totalPages ? 'var(--text-light)' : 'var(--text-dark)',
+          cursor: page === totalPages ? 'default' : 'pointer'
+        }}
+      >
+        {t('common.next')} ›
+      </button>
+    </div>
+  )
+}
+
+function AllFilesTable({ files, t, basePath }) {
+  const [copied, setCopied] = useState(false)
+  const [page, setPage] = useState(1)
+  const perPage = 20
+  const totalPages = Math.ceil(files.length / perPage)
+  const paged = files.slice((page - 1) * perPage, page * perPage)
+
+  useEffect(() => { setPage(1) }, [files])
+
+  const getScoreColor = (score) => {
+    if (score >= 80) return '#16A34A'
+    if (score >= 60) return '#D97706'
+    return '#DC2626'
+  }
+
+  const getStatusLabel = (s) => ({
+    completed: t('history.completed'),
+    pending: t('history.pending'),
+    failed: t('history.failed')
+  }[s] || s)
+
+  const getStatusColor = (s) => ({
+    completed: { bg: '#DCFCE7', color: '#16A34A' },
+    pending: { bg: '#FEF3C7', color: '#D97706' },
+    failed: { bg: '#FEF2F2', color: '#DC2626' }
+  }[s] || { bg: 'var(--surface)', color: 'var(--text-gray)' })
+
+  const getName = (a) => {
+    // ใช้ extracted_name (จาก Resume) ก่อน, fallback เป็นชื่อ profile
+    if (a.extracted_name) return a.extracted_name
+    if (a.profiles?.first_name) return `${a.profiles.first_name} ${a.profiles.last_name || ''}`.trim()
+    return a.profiles?.username || '-'
+  }
+
+  function copyToExcel() {
+    const header = [t('history.student'), t('history.studentId'), t('history.fileName'), t('history.position'), t('history.score'), t('history.status'), t('history.analyzedDate')]
+    const rows = files.map(a => [
+      getName(a),
+      a.profiles?.student_id || '-',
+      a.file_name || '-',
+      a.job_position || '-',
+      a.total_score !== null ? a.total_score : '-',
+      getStatusLabel(a.status),
+      new Date(a.created_at).toLocaleDateString('th-TH')
+    ])
+    const tsv = [header, ...rows].map(row => row.join('\t')).join('\n')
+    navigator.clipboard.writeText(tsv).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  const headers = [
+    t('history.student'),
+    t('history.studentId'),
+    t('history.fileName'),
+    t('history.position'),
+    t('history.score'),
+    t('history.status'),
+    t('history.analyzedDate'),
+    ''
+  ]
+
+  return (
+    <>
+      {/* Copy to Excel */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <button
+          onClick={copyToExcel}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '8px 16px', fontSize: 13, fontWeight: 500,
+            background: copied ? '#DCFCE7' : 'var(--surface)',
+            color: copied ? '#16A34A' : 'var(--text-gray)',
+            border: `1px solid ${copied ? '#16A34A' : 'var(--border)'}`,
+            borderRadius: 'var(--radius-sm)',
+            cursor: 'pointer', transition: 'all 0.15s'
+          }}
+        >
+          {copied ? (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              {t('history.copied')}
+            </>
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+              {t('history.copyExcel')}
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Desktop table */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'none' }} id="desktop-files-table">
+        <style>{`@media (min-width: 768px) { #desktop-files-table { display: block !important; } #mobile-files-cards { display: none !important; } }`}</style>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                {headers.map((h, i) => (
+                  <th key={i} style={{
+                    textAlign: i === 4 ? 'center' : 'left',
+                    padding: '14px 16px', fontSize: 13, fontWeight: 600,
+                    color: 'var(--text-gray)', background: 'var(--input-bg)',
+                    whiteSpace: 'nowrap'
+                  }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {paged.map((a) => {
+                const sc = getStatusColor(a.status)
+                return (
+                  <tr key={a.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)', fontWeight: 500 }}>
+                      {getName(a)}
+                    </td>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-gray)', fontFamily: 'monospace' }}>
+                      {a.profiles?.student_id || '-'}
+                    </td>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {a.file_name || '-'}
+                    </td>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--text-dark)' }}>
+                      {a.job_position || '-'}
+                    </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      {a.total_score !== null ? (
+                        <span style={{ fontSize: 14, fontWeight: 700, color: getScoreColor(a.total_score) }}>
+                          {a.total_score}/100
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--text-light)' }}>—</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99,
+                        background: sc.bg, color: sc.color
+                      }}>
+                        {getStatusLabel(a.status)}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px', fontSize: 12, color: 'var(--text-gray)', whiteSpace: 'nowrap' }}>
+                      {new Date(a.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </td>
+                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                      {a.status === 'completed' && a.total_score !== null && (
+                        <Link href={`${basePath}/analyze/${a.id}`}
+                          style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
+                          {t('history.viewDetail')}
+                        </Link>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
+      </div>
+
+      {/* Mobile cards */}
+      <div id="mobile-files-cards" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {paged.map((a) => {
+          const sc = getStatusColor(a.status)
+          return (
+            <div key={a.id} className="card" style={{ padding: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)', marginBottom: 2 }}>
+                    {getName(a)}
+                  </p>
+                  <p style={{ fontSize: 12, color: 'var(--text-light)', fontFamily: 'monospace' }}>
+                    {a.profiles?.student_id || ''}
+                  </p>
+                </div>
+                {a.total_score !== null ? (
+                  <span style={{ fontSize: 16, fontWeight: 700, color: getScoreColor(a.total_score), flexShrink: 0, marginLeft: 8 }}>
+                    {a.total_score}/100
+                  </span>
+                ) : (
+                  <span style={{ color: 'var(--text-light)', flexShrink: 0, marginLeft: 8 }}>—</span>
+                )}
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {a.file_name || '-'}
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-gray)' }}>{a.job_position || '-'}</span>
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 99,
+                    background: sc.bg, color: sc.color
+                  }}>
+                    {getStatusLabel(a.status)}
+                  </span>
+                </div>
+                {a.status === 'completed' && a.total_score !== null && (
+                  <Link href={`${basePath}/analyze/${a.id}`}
+                    style={{ fontSize: 13, color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
+                    {t('history.viewDetail')}
+                  </Link>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination page={page} totalPages={totalPages} setPage={setPage} t={t} />
       )}
     </>
   )

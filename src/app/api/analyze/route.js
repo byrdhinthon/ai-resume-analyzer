@@ -135,7 +135,8 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
   "suggestions": {
     ${(criteriaData || []).map(c => `"${c.category}": "<suggestion in Thai>"`).join(',\n    ')}
   },
-  "summary": "<overall summary in Thai, 2-3 sentences>"
+  "summary": "<overall summary in Thai, 2-3 sentences>",
+  "candidate_name": "<full name of the resume owner as written in the resume, or null if not found>"
 }`
 
     const completion = await openai.chat.completions.create({
@@ -174,13 +175,15 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
     const totalScore = Object.values(result.scores).reduce((a, b) => a + b, 0)
 
     // 6. อัปเดตผลลงตาราง analyses
+    const extractedName = result.candidate_name && result.candidate_name !== 'null' ? result.candidate_name : null
     const { error: updateError } = await supabase
       .from('analyses')
       .update({
         total_score: totalScore,
         scores: result.scores,
         suggestions: { ...result.suggestions, summary: result.summary },
-        status: 'completed'
+        status: 'completed',
+        extracted_name: extractedName
       })
       .eq('id', analysisId)
 
