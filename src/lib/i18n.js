@@ -307,6 +307,13 @@ const translations = {
     'batch.error': 'ผิดพลาด',
     'batch.processing': 'กำลังประมวลผล...',
     'batch.submit': 'อัปโหลดและวิเคราะห์',
+
+    // View toggle
+    'view.groupByUser': 'รวมตามผู้ใช้',
+    'view.allFiles': 'แสดงทุกไฟล์',
+    'filter.files': 'ไฟล์',
+    'history.fileName': 'ชื่อไฟล์',
+    'history.analyzedDate': 'วันที่วิเคราะห์',
   },
 
   en: {
@@ -617,6 +624,13 @@ const translations = {
     'batch.error': 'Error',
     'batch.processing': 'Processing...',
     'batch.submit': 'Upload & Analyze',
+
+    // View toggle
+    'view.groupByUser': 'Group by User',
+    'view.allFiles': 'All Files',
+    'filter.files': 'files',
+    'history.fileName': 'File Name',
+    'history.analyzedDate': 'Analyzed Date',
   }
 
 }

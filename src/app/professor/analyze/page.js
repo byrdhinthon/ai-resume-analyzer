@@ -117,11 +117,8 @@ export default function ProfessorAnalyzePage() {
           <BatchUploadForm
             jobPosition={jobPosition}
             onComplete={(ids) => {
-              if (ids.length === 1) {
-                router.push(`${basePath}/analyze/${ids[0]}`)
-              } else {
-                router.push(`${basePath}/analyses`)
-              }
+              // ไปหน้าผลลัพธ์ไฟล์แรกเสมอ (ถ้าหลายไฟล์จะมีปุ่ม prev/next)
+              router.push(`${basePath}/analyze/${ids[0]}`)
             }}
           />
         </div>

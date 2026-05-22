@@ -53,6 +53,9 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
     if (!user) { setError('Not authenticated'); setUploading(false); return }
     const { data: { session } } = await supabase.auth.getSession()
 
+    // สร้าง batch_id สำหรับกลุ่มนี้ (เฉพาะหลายไฟล์)
+    const batchId = files.length > 1 ? crypto.randomUUID() : null
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       const fileKey = `${i}-${file.name}`
@@ -64,9 +67,12 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
         const { error: uploadError } = await supabase.storage.from('resumes').upload(fileName, file)
         if (uploadError) { setProgress(prev => ({ ...prev, [fileKey]: 'error' })); continue }
 
+        const insertData = { user_id: user.id, file_url: fileName, file_name: file.name, job_position: jobPosition, status: 'pending' }
+        if (batchId) insertData.batch_id = batchId
+
         const { data: analysis, error: insertError } = await supabase
           .from('analyses')
-          .insert({ user_id: user.id, file_url: fileName, file_name: file.name, job_position: jobPosition, status: 'pending' })
+          .insert(insertData)
           .select('id').single()
         if (insertError) { setProgress(prev => ({ ...prev, [fileKey]: 'error' })); continue }
 
