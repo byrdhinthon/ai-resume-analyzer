@@ -76,7 +76,8 @@ export default function ProfessorAnalysisDetail({ params }) {
       setLoading(false)
     }
     load()
-  }, [id, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   function goToBatchItem(index) {
     if (index >= 0 && index < batchIds.length) {
