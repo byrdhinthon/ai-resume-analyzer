@@ -86,17 +86,58 @@ export default function AdminPage() {
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
               {[
-                { label: t('admin.totalUsers'), value: stats.totalUsers, color: 'var(--primary)' },
-                { label: t('admin.totalAnalyses'), value: stats.totalAnalyses, color: 'var(--primary)' },
+                {
+                  label: t('admin.totalUsers'),
+                  value: stats.totalUsers,
+                  color: 'var(--primary)',
+                  tooltip: 'จำนวนผู้ใช้ทั้งหมดที่สมัครในระบบ (ทุก role: นักศึกษา / อาจารย์ / admin)'
+                },
+                {
+                  label: t('admin.totalAnalyses'),
+                  value: stats.totalAnalyses,
+                  color: 'var(--primary)',
+                  tooltip: 'จำนวนการวิเคราะห์เรซูเม่ที่เสร็จสมบูรณ์ทั้งหมด (ไม่นับที่ค้าง pending หรือ error)'
+                },
                 {
                   label: t('admin.averageScore'),
                   value: stats.totalAnalyses > 0 ? `${stats.averageScore}` : '-',
                   sub: stats.totalAnalyses > 0 ? '/100' : '',
-                  color: stats.totalAnalyses > 0 ? getScoreColor(stats.averageScore) : 'var(--text-light)'
+                  color: stats.totalAnalyses > 0 ? getScoreColor(stats.averageScore) : 'var(--text-light)',
+                  tooltip: 'คะแนนเฉลี่ยของการวิเคราะห์ทั้งหมดที่เสร็จสมบูรณ์ คำนวณจากผลรวมของคะแนนรวม (จาก 100) ของแต่ละ analysis แล้วหารด้วยจำนวน analysis'
                 },
-                { label: t('admin.totalPositions'), value: stats.topPositions.length, color: 'var(--primary)' },
+                {
+                  label: t('admin.totalPositions'),
+                  value: stats.topPositions.length,
+                  color: 'var(--primary)',
+                  tooltip: 'จำนวนตำแหน่งงานที่มีคนเคยวิเคราะห์เรซูเม่ (ไม่ใช่จำนวนตำแหน่งทั้งหมดในระบบ)'
+                },
               ].map((s, i) => (
-                <div key={i} className="card" style={{ textAlign: 'center', padding: '24px 16px' }}>
+                <div key={i} className="card" style={{ textAlign: 'center', padding: '24px 16px', position: 'relative' }}>
+                  {s.tooltip && (
+                    <div
+                      title={s.tooltip}
+                      style={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 10,
+                        width: 18,
+                        height: 18,
+                        borderRadius: '50%',
+                        background: 'var(--input-bg)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'help',
+                        color: 'var(--text-light)',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        fontFamily: 'serif',
+                        lineHeight: 1
+                      }}
+                    >
+                      i
+                    </div>
+                  )}
                   <p style={{ fontSize: 12, color: 'var(--text-gray)', marginBottom: 10 }}>{s.label}</p>
                   <p style={{ fontSize: 32, fontWeight: 700, color: s.color, lineHeight: 1 }}>
                     {s.value}<span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-light)' }}>{s.sub}</span>
