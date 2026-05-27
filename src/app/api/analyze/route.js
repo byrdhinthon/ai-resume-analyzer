@@ -88,6 +88,12 @@ export async function POST(request) {
       return Response.json({ error: 'Analysis already processed' }, { status: 400 })
     }
 
+    // helper: ตั้งสถานะเป็น failed เพื่อไม่ให้รายการค้าง pending เมื่อประมวลผลล้มเหลว
+    const fail = async (code, status) => {
+      await supabase.from('analyses').update({ status: 'failed' }).eq('id', analysisId)
+      return Response.json({ error: code }, { status })
+    }
+
     // 1. ดึงไฟล์จาก Supabase Storage
     const { data: fileData, error: downloadError } = await supabase.storage
       .from('resumes')
@@ -95,7 +101,7 @@ export async function POST(request) {
 
     if (downloadError) {
       console.error('Download error:', downloadError.message)
-      return Response.json({ error: 'DOWNLOAD_FAILED' }, { status: 400 })
+      return await fail('DOWNLOAD_FAILED', 400)
     }
 
     // 2. แปลงเป็น Buffer แล้ว extract text (หรือเตรียมรูปสำหรับ vision)
@@ -117,13 +123,13 @@ export async function POST(request) {
         : 'image/jpeg'
       imageDataUrl = `data:${mime};base64,${buffer.toString('base64')}`
     } else {
-      return Response.json({ error: 'UNSUPPORTED_FILE_TYPE' }, { status: 400 })
+      return await fail('UNSUPPORTED_FILE_TYPE', 400)
     }
 
     if (!isImage) {
       resumeText = String(resumeText || '')
       if (!resumeText || resumeText.trim().length < 10) {
-        return Response.json({ error: 'CANNOT_READ_FILE' }, { status: 400 })
+        return await fail('CANNOT_READ_FILE', 400)
       }
     }
 
@@ -326,7 +332,11 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
       max_completion_tokens: 3000
     })
 
-    const responseText = completion.choices[0].message.content.trim()
+    const rawContent = completion.choices?.[0]?.message?.content
+    if (!rawContent) {
+      return await fail('AI_INVALID_RESPONSE', 500)
+    }
+    const responseText = rawContent.trim()
 
     // 4. Parse JSON response
     let result
@@ -335,12 +345,12 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
       const cleaned = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
       result = JSON.parse(cleaned)
     } catch (parseError) {
-      return Response.json({ error: 'AI_INVALID_RESPONSE' }, { status: 500 })
+      return await fail('AI_INVALID_RESPONSE', 500)
     }
 
     // 5. ตรวจสอบและจำกัดคะแนนให้อยู่ในช่วงที่ถูกต้อง
     if (!result.scores || typeof result.scores !== 'object') {
-      return Response.json({ error: 'AI_INVALID_RESPONSE' }, { status: 500 })
+      return await fail('AI_INVALID_RESPONSE', 500)
     }
 
     // Clamp scores ให้อยู่ในช่วง 0 - max_score ของแต่ละ category
@@ -372,7 +382,7 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
 
     if (updateError) {
       console.error('Update error:', updateError.message)
-      return Response.json({ error: 'SAVE_FAILED' }, { status: 500 })
+      return await fail('SAVE_FAILED', 500)
     }
 
     // 7. Save / update AI-generated skill list กลับเข้า job_positions (per-position mode เท่านั้น)
