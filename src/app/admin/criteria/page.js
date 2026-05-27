@@ -43,6 +43,22 @@ export default function AdminCriteriaPage() {
       return
     }
 
+    // ตรวจสอบว่ารวมแล้วไม่เกิน 100 — บล็อกการ save ถ้าเกิน
+    const currentItem = criteria.find(c => c.id === id)
+    const newTotal = totalMaxScore - (currentItem?.max_score || 0) + maxScore
+    if (newTotal > 100) {
+      const otherCategoriesSum = totalMaxScore - (currentItem?.max_score || 0)
+      const maxAllowed = 100 - otherCategoriesSum
+      setMessage({
+        type: 'error',
+        text: `❌ คะแนนรวมเกิน 100 — ถ้าบันทึกจะได้ ${newTotal}/100\n` +
+              `หมวดอื่นรวมกัน ${otherCategoriesSum} คะแนน → หมวดนี้ใส่ได้ไม่เกิน ${maxAllowed} คะแนน\n` +
+              `(หรือไปลดคะแนนของหมวดอื่นก่อน)`
+      })
+      setSaving(false)
+      return
+    }
+
     const { error } = await supabase
       .from('scoring_criteria')
       .update({
@@ -83,7 +99,8 @@ export default function AdminCriteriaPage() {
           <div style={{
             fontSize: 13, padding: '10px 14px', borderRadius: 10, marginBottom: 16,
             background: message.type === 'error' ? '#FEF2F2' : '#DCFCE7',
-            color: message.type === 'error' ? '#DC2626' : '#16A34A'
+            color: message.type === 'error' ? '#DC2626' : '#16A34A',
+            whiteSpace: 'pre-line'
           }}>
             {message.text}
           </div>
@@ -132,6 +149,22 @@ export default function AdminCriteriaPage() {
                             style={{ flex: 1 }}
                           />
                         </div>
+                        {(() => {
+                          const newMax = parseInt(editData.max_score) || 0
+                          const newTotal = totalMaxScore - item.max_score + newMax
+                          const isOver = newTotal > 100
+                          return (
+                            <p style={{
+                              fontSize: 11,
+                              color: isOver ? '#DC2626' : (newTotal === 100 ? '#16A34A' : 'var(--text-gray)'),
+                              marginTop: 4
+                            }}>
+                              {isOver
+                                ? `⚠️ รวม ${newTotal}/100 — เกิน ${newTotal - 100}`
+                                : `รวมจะเป็น ${newTotal}/100`}
+                            </p>
+                          )
+                        })()}
                       </div>
                     </div>
                     <div>
