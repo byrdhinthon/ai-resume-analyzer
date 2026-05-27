@@ -128,24 +128,16 @@ export async function POST(request) {
     // Sanitize jobPosition เพื่อป้องกัน prompt injection
     const sanitizedPosition = jobPosition.replace(/[^\w\s\-\.\/\(\)ก-๙เแโใไะาิีึืุูัํ็่้๊๋์]+/g, '').substring(0, 100)
 
-    // ดึง required_skills + responsibilities ของตำแหน่งนี้จาก DB (migration 004 + 005)
+    // ดึงแค่ responsibilities ของตำแหน่งนี้ — required_skills + nice_to_have
+    // ไม่ใช้แล้ว เพราะให้ AI generate skill list เองตาม intern context
+    // (columns ใน DB ยังเก็บไว้สำหรับ backward compat — ไม่ลบทิ้ง)
     const { data: positionData } = await supabase
       .from('job_positions')
-      .select('required_skills, nice_to_have, responsibilities')
+      .select('responsibilities')
       .eq('name', sanitizedPosition)
       .single()
 
-    const requiredSkills = positionData?.required_skills || []
-    const niceToHave = positionData?.nice_to_have || []
     const responsibilities = positionData?.responsibilities || ''
-
-    const requiredText = requiredSkills.length
-      ? requiredSkills.map((s, i) => `${i + 1}. ${s}`).join('\n')
-      : '(ไม่ได้กำหนด — ใช้ความรู้ทั่วไปของตำแหน่งนี้)'
-
-    const niceText = niceToHave.length
-      ? niceToHave.map(s => `- ${s}`).join('\n')
-      : '(ไม่มี)'
 
     const prompt = `You are a SUPPORTIVE IT career advisor helping Thai university students prepare resumes for internships and entry-level positions. Give FAIR, EVIDENCE-BASED scores calibrated for student/intern level — not professional senior level. The goal is to help students improve, not to discourage them.
 
@@ -154,13 +146,25 @@ TARGET POSITION: ${sanitizedPosition}
 ═══════════════════════════════════════════
 
 RESPONSIBILITIES:
-${responsibilities}
+${responsibilities || '(ไม่ได้ระบุ — ใช้ความเข้าใจทั่วไปของตำแหน่งนี้)'}
 
-REQUIRED SKILLS (skills that match this position):
-${requiredText}
+═══════════════════════════════════════════
+SKILL ASSESSMENT TASK (ทำตามลำดับ)
+═══════════════════════════════════════════
+**Step 1:** คิดว่าตำแหน่ง **${sanitizedPosition}** ระดับ intern / entry-level "ควรมีทักษะอะไร" — list 5-8 อันที่จำเป็นจริงๆ
+- คิดในมุมมองตลาดงาน IT ไทย (JobsDB / LinkedIn jobs)
+- intern level ไม่ใช่ senior — เลือกทักษะพื้นฐาน-ระดับกลาง ไม่ใช่ advanced
+- รวมทั้ง hard skill (เทคโนโลยี/ภาษา/framework) + พื้นฐานจำเป็น (Git, debug, การอ่าน doc)
+- ทักษะที่เทียบเคียงกันได้ ระบุเป็น OR เช่น "React หรือ Vue หรือ Angular" / "SQL หรือ NoSQL database"
 
-NICE-TO-HAVE SKILLS (bonus only):
-${niceText}
+**Step 2:** เทียบกับเรซูเม่ — แยกเป็น:
+- ทักษะที่ candidate **มี** = ระบุชื่อในเรซูเม่ + หรือ มีหลักฐาน (project / coursework / certificate)
+- ทักษะที่เทียบเคียงกันได้ให้นับเป็น "มี" (เช่น MongoDB = database backend, FastAPI = REST framework, Streamlit = web UI tool)
+- ทักษะที่ candidate **ขาด** = ไม่พบในเรซูเม่เลย
+
+**Step 3:** ระบุทักษะ **พิเศษ** ที่ candidate มีและเกี่ยวข้องแม้ไม่ได้อยู่ใน Step 1 list (เช่น มี Docker เพิ่ม, มี ML knowledge)
+
+**Step 4:** หลังจากทำ Step 1-3 ครบ ค่อยให้คะแนนแต่ละหมวดตามเกณฑ์ใน description ด้านล่าง
 
 ═══════════════════════════════════════════
 GLOBAL SCORING CONTEXT
@@ -189,11 +193,12 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
 
 {
   "skills_analysis": {
-    "required_matched": ["ทักษะใน required list ที่พบในเรซูเม่"],
-    "required_missing": ["ทักษะใน required list ที่ไม่พบในเรซูเม่"],
-    "nice_to_have_matched": ["nice-to-have ที่พบ"],
-    "irrelevant_skills_in_resume": ["ทักษะที่มีในเรซูเม่แต่ไม่เกี่ยวกับตำแหน่ง"],
-    "match_ratio": <0.0-1.0>,
+    "position_expected_skills": ["Step 1: ทักษะที่ตำแหน่งนี้ควรมีระดับ intern (5-8 อัน)"],
+    "candidate_has": ["Step 2: ทักษะที่พบในเรซูเม่และตรงกับ expected (รวมที่เทียบเคียงได้)"],
+    "candidate_missing": ["Step 2: ทักษะใน expected ที่ไม่พบในเรซูเม่"],
+    "candidate_extras_relevant": ["Step 3: ทักษะพิเศษที่เกี่ยวข้องแม้ไม่อยู่ใน expected list"],
+    "irrelevant_skills_in_resume": ["ทักษะในเรซูเม่ที่ไม่เกี่ยวกับตำแหน่ง"],
+    "match_ratio": <0.0-1.0 = candidate_has.length / position_expected_skills.length>,
     "evidence_quality": "<none|mentioned_only|with_examples|with_projects>"
   },
   "scores": {
