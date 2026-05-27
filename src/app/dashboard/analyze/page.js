@@ -37,7 +37,10 @@ export default function AnalyzePage() {
 
     const allowedTypes = [
       'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/png',
+      'image/jpeg',
+      'image/webp'
     ]
     if (!allowedTypes.includes(selected.type)) {
       setError(t('analyze.fileTypeError'))
@@ -193,7 +196,7 @@ export default function AnalyzePage() {
               </label>
               <input
                 type="file"
-                accept=".pdf,.docx"
+                accept=".pdf,.docx,.png,.jpg,.jpeg,.webp"
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
                 id="file-upload"

@@ -85,21 +85,33 @@ export async function POST(request) {
       return Response.json({ error: 'DOWNLOAD_FAILED' }, { status: 400 })
     }
 
-    // 2. แปลงเป็น Buffer แล้ว extract text
+    // 2. แปลงเป็น Buffer แล้ว extract text (หรือเตรียมรูปสำหรับ vision)
     const buffer = Buffer.from(await fileData.arrayBuffer())
+    const lowerName = fileName.toLowerCase()
+    const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg')
+      || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp')
     let resumeText = ''
+    let imageDataUrl = null
 
-    if (fileName.endsWith('.pdf')) {
+    if (lowerName.endsWith('.pdf')) {
       resumeText = await extractPdfText(buffer)
-    } else if (fileName.endsWith('.docx')) {
+    } else if (lowerName.endsWith('.docx')) {
       resumeText = await extractDocxText(buffer)
+    } else if (isImage) {
+      // เรซูเม่เป็นรูปภาพ → ส่งเข้า vision model ให้อ่านเอง
+      const mime = lowerName.endsWith('.png') ? 'image/png'
+        : lowerName.endsWith('.webp') ? 'image/webp'
+        : 'image/jpeg'
+      imageDataUrl = `data:${mime};base64,${buffer.toString('base64')}`
     } else {
       return Response.json({ error: 'UNSUPPORTED_FILE_TYPE' }, { status: 400 })
     }
 
-    resumeText = String(resumeText || '')
-    if (!resumeText || resumeText.trim().length < 10) {
-      return Response.json({ error: 'CANNOT_READ_FILE' }, { status: 400 })
+    if (!isImage) {
+      resumeText = String(resumeText || '')
+      if (!resumeText || resumeText.trim().length < 10) {
+        return Response.json({ error: 'CANNOT_READ_FILE' }, { status: 400 })
+      }
     }
 
     // 3. ส่งให้ OpenAI วิเคราะห์
@@ -188,9 +200,9 @@ SUGGESTION TONE — สำคัญ
 - ชี้จุดแข็งที่มีก่อน แล้วค่อยแนะนำสิ่งที่เพิ่มได้
 
 ═══════════════════════════════════════════
-RESUME TEXT
+RESUME ${isImage ? '(แนบมาเป็นรูปภาพด้านล่าง — อ่านข้อความและข้อมูลทั้งหมดจากรูปภาพ)' : 'TEXT'}
 ═══════════════════════════════════════════
-${resumeText.substring(0, 12000)}
+${isImage ? '(ดูเรซูเม่จากรูปภาพที่แนบ)' : resumeText.substring(0, 12000)}
 
 ═══════════════════════════════════════════
 SCORING CATEGORIES (max scores)
@@ -221,9 +233,17 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
   "candidate_name": "<ชื่อ-นามสกุล หรือ null>"
 }`
 
+    // ถ้าเป็นรูป → ส่ง prompt + image เข้าโมเดล (multimodal), ถ้าเป็น text → ส่ง prompt เดี่ยว
+    const userContent = imageDataUrl
+      ? [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: imageDataUrl } }
+        ]
+      : prompt
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-5.4-nano',
-      messages: [{ role: 'user', content: prompt }],
+      messages: [{ role: 'user', content: userContent }],
       temperature: 0,
       max_completion_tokens: 3000
     })

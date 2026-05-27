@@ -8,7 +8,10 @@ const MAX_FILES = 30
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES = [
   'application/pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'image/png',
+  'image/jpeg',
+  'image/webp'
 ]
 
 export default function BatchUploadForm({ jobPosition, onComplete }) {
@@ -103,7 +106,7 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
 
   return (
     <div>
-      <input type="file" accept=".pdf,.docx" multiple onChange={addFiles} style={{ display: 'none' }} id="batch-file-upload" disabled={uploading} />
+      <input type="file" accept=".pdf,.docx,.png,.jpg,.jpeg,.webp" multiple onChange={addFiles} style={{ display: 'none' }} id="batch-file-upload" disabled={uploading} />
       <label htmlFor="batch-file-upload" style={{ cursor: uploading ? 'not-allowed' : 'pointer', display: 'block' }}>
         <div style={{
           border: '2px dashed var(--border)', borderRadius: 'var(--radius-md)',
@@ -115,7 +118,7 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
             </svg>
           </div>
           <p style={{ fontSize: 14, color: 'var(--text-gray)', marginBottom: 4 }}>{t('batch.clickToSelect')}</p>
-          <p style={{ fontSize: 12, color: 'var(--text-light)' }}>PDF, DOCX · {t('batch.maxInfo') || `สูงสุด ${MAX_FILES} ไฟล์ · ไฟล์ละไม่เกิน 5MB`}</p>
+          <p style={{ fontSize: 12, color: 'var(--text-light)' }}>PDF, DOCX, PNG, JPG · {t('batch.maxInfo') || `สูงสุด ${MAX_FILES} ไฟล์ · ไฟล์ละไม่เกิน 5MB`}</p>
         </div>
       </label>
 
