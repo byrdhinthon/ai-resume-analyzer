@@ -116,34 +116,89 @@ export async function POST(request) {
     // Sanitize jobPosition เพื่อป้องกัน prompt injection
     const sanitizedPosition = jobPosition.replace(/[^\w\s\-\.\/\(\)ก-๙เแโใไะาิีึืุูัํ็่้๊๋์]+/g, '').substring(0, 100)
 
-    const prompt = `You are an expert IT resume reviewer. Analyze the following resume for a "${sanitizedPosition}" position.
+    // ดึง required_skills + responsibilities ของตำแหน่งนี้จาก DB (migration 004 + 005)
+    const { data: positionData } = await supabase
+      .from('job_positions')
+      .select('required_skills, nice_to_have, responsibilities')
+      .eq('name', sanitizedPosition)
+      .single()
 
-RESUME TEXT:
+    const requiredSkills = positionData?.required_skills || []
+    const niceToHave = positionData?.nice_to_have || []
+    const responsibilities = positionData?.responsibilities || ''
+
+    const requiredText = requiredSkills.length
+      ? requiredSkills.map((s, i) => `${i + 1}. ${s}`).join('\n')
+      : '(ไม่ได้กำหนด — ใช้ความรู้ทั่วไปของตำแหน่งนี้)'
+
+    const niceText = niceToHave.length
+      ? niceToHave.map(s => `- ${s}`).join('\n')
+      : '(ไม่มี)'
+
+    const prompt = `You are a STRICT IT resume reviewer for the Thai IT job market. Give HONEST scores based ONLY on evidence in the resume — no optimistic guesses.
+
+═══════════════════════════════════════════
+TARGET POSITION: ${sanitizedPosition}
+═══════════════════════════════════════════
+
+RESPONSIBILITIES:
+${responsibilities}
+
+REQUIRED SKILLS (candidate MUST have most of these):
+${requiredText}
+
+NICE-TO-HAVE SKILLS (bonus only):
+${niceText}
+
+═══════════════════════════════════════════
+SCORING RULES — READ CAREFULLY
+═══════════════════════════════════════════
+1. EVIDENCE-BASED: ให้คะแนนจากสิ่งที่เขียนในเรซูเม่เท่านั้น ห้ามคาดเดาว่า "น่าจะรู้"
+2. NO PARTIAL CREDIT for unrelated skills: ทักษะที่ไม่เกี่ยวกับตำแหน่งนี้ไม่นับในหมวดทักษะ (เช่น Photoshop ในใบสมัคร Backend = ไม่ใช่ทักษะที่เกี่ยวข้อง)
+3. ZERO MATCH = ZERO SCORE: ถ้าใบสมัครไม่มี Required Skills ตรงเลย หมวด "ทักษะทางเทคนิค" ต้องได้ 0-15% ของคะแนนเต็ม
+4. PROOF MATTERS: แค่เขียนชื่อทักษะ = 25-40% / เขียนพร้อม project / ตัวอย่างใช้งาน = 60-100%
+5. NICE-TO-HAVE ไม่ทดแทน REQUIRED: มี Docker แต่ไม่มี backend language → ยังคงคะแนนต่ำ
+6. ห้ามชดเชยหมวดที่ขาดด้วยหมวดอื่นที่ดี
+
+═══════════════════════════════════════════
+RESUME TEXT
+═══════════════════════════════════════════
 ${resumeText.substring(0, 12000)}
 
-Score the resume in these categories and provide specific suggestions for improvement in each category.
-Use the criteria from JobsDB Thailand career advice for IT positions.
-
-Categories and max scores:
+═══════════════════════════════════════════
+SCORING CATEGORIES (max scores)
+═══════════════════════════════════════════
 ${criteriaText}
 
-IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
+═══════════════════════════════════════════
+OUTPUT FORMAT
+═══════════════════════════════════════════
+Respond ONLY with valid JSON. Analyze skills FIRST, then score:
+
 {
+  "skills_analysis": {
+    "required_matched": ["ทักษะใน required list ที่พบในเรซูเม่"],
+    "required_missing": ["ทักษะใน required list ที่ไม่พบในเรซูเม่"],
+    "nice_to_have_matched": ["nice-to-have ที่พบ"],
+    "irrelevant_skills_in_resume": ["ทักษะที่มีในเรซูเม่แต่ไม่เกี่ยวกับตำแหน่ง"],
+    "match_ratio": <0.0-1.0>,
+    "evidence_quality": "<none|mentioned_only|with_examples|with_projects>"
+  },
   "scores": {
     ${(criteriaData || []).map(c => `"${c.category}": <number 0-${c.max_score}>`).join(',\n    ')}
   },
   "suggestions": {
-    ${(criteriaData || []).map(c => `"${c.category}": "<suggestion in Thai>"`).join(',\n    ')}
+    ${(criteriaData || []).map(c => `"${c.category}": "<คำแนะนำภาษาไทย ระบุทักษะที่ขาดและควรเพิ่ม>"`).join(',\n    ')}
   },
-  "summary": "<overall summary in Thai, 2-3 sentences>",
-  "candidate_name": "<full name of the resume owner as written in the resume, or null if not found>"
+  "summary": "<สรุปภาษาไทย 2-3 ประโยค บอกระดับความพร้อมและทักษะหลักที่ขาด>",
+  "candidate_name": "<ชื่อ-นามสกุล หรือ null>"
 }`
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-5.4-nano',
       messages: [{ role: 'user', content: prompt }],
-      temperature: 0.3,
-      max_completion_tokens: 2000
+      temperature: 0,
+      max_completion_tokens: 3000
     })
 
     const responseText = completion.choices[0].message.content.trim()
@@ -182,6 +237,7 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
         total_score: totalScore,
         scores: result.scores,
         suggestions: { ...result.suggestions, summary: result.summary },
+        skills_analysis: result.skills_analysis || null,
         status: 'completed',
         extracted_name: extractedName
       })
@@ -196,7 +252,8 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format, no other text:
       success: true,
       totalScore,
       scores: result.scores,
-      suggestions: { ...result.suggestions, summary: result.summary }
+      suggestions: { ...result.suggestions, summary: result.summary },
+      skills_analysis: result.skills_analysis || null
     })
 
   } catch (error) {
