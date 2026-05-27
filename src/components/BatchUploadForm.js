@@ -14,7 +14,7 @@ const ALLOWED_TYPES = [
   'image/webp'
 ]
 
-export default function BatchUploadForm({ jobPosition, onComplete }) {
+export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-position', passThreshold = 60 }) {
   const [files, setFiles] = useState([])
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState({})
@@ -48,7 +48,10 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
   }
 
   async function uploadAll() {
-    if (!jobPosition) { setError(t('analyze.selectPositionError')); return }
+    // Quality mode ไม่ต้องเลือกตำแหน่ง — บังคับเฉพาะ per-position mode
+    if (mode === 'per-position' && !jobPosition) {
+      setError(t('analyze.selectPositionError')); return
+    }
     if (files.length === 0) { setError(t('analyze.selectFileError')); return }
 
     setUploading(true); setError('')
@@ -70,7 +73,13 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
         const { error: uploadError } = await supabase.storage.from('resumes').upload(fileName, file)
         if (uploadError) { setProgress(prev => ({ ...prev, [fileKey]: 'error' })); continue }
 
-        const insertData = { user_id: user.id, file_url: fileName, file_name: file.name, job_position: jobPosition, status: 'pending' }
+        const insertData = {
+          user_id: user.id,
+          file_url: fileName,
+          file_name: file.name,
+          job_position: mode === 'quality' ? 'Quality Review' : jobPosition,
+          status: 'pending'
+        }
         if (batchId) insertData.batch_id = batchId
 
         const { data: analysis, error: insertError } = await supabase
@@ -83,7 +92,14 @@ export default function BatchUploadForm({ jobPosition, onComplete }) {
         const response = await fetch('/api/analyze', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-          body: JSON.stringify({ analysisId: analysis.id, fileUrl: fileName, fileName: file.name, jobPosition })
+          body: JSON.stringify({
+            analysisId: analysis.id,
+            fileUrl: fileName,
+            fileName: file.name,
+            jobPosition: mode === 'quality' ? 'Quality Review' : jobPosition,
+            mode,
+            passThreshold
+          })
         })
 
         if (response.ok) { setProgress(prev => ({ ...prev, [fileKey]: 'done' })); analysisIds.push(analysis.id) }

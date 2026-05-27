@@ -51,8 +51,38 @@ export default function AnalysisDetailView({
         </p>
       </div>
 
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 24, position: 'relative' }}>
         <ScoreOverview score={analysis.total_score} label={t('result.totalScore')} />
+
+        {/* Pass/Fail badge — เฉพาะ Quality Review Mode */}
+        {analysis.evaluation_mode === 'quality' && analysis.pass_threshold !== null && (
+          (() => {
+            const passed = analysis.total_score >= analysis.pass_threshold
+            return (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                padding: '8px 16px',
+                borderRadius: 99,
+                background: passed ? '#DCFCE7' : '#FEF2F2',
+                border: '1.5px solid ' + (passed ? '#16A34A' : '#DC2626'),
+                fontSize: 14,
+                fontWeight: 700,
+                color: passed ? '#16A34A' : '#DC2626'
+              }}>
+                <span style={{ fontSize: 18 }}>{passed ? '✅' : '❌'}</span>
+                <span>{passed ? 'ผ่าน' : 'ไม่ผ่าน'}</span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: passed ? '#16A34A' : '#DC2626', opacity: 0.7 }}>
+                  (เกณฑ์ {analysis.pass_threshold})
+                </span>
+              </div>
+            )
+          })()
+        )}
       </div>
 
       <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-dark)', marginBottom: 14 }}>
