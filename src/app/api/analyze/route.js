@@ -66,6 +66,12 @@ export async function POST(request) {
       return Response.json({ error: 'Invalid file path' }, { status: 400 })
     }
 
+    // ป้องกัน cross-user file read: ไฟล์ต้องอยู่ในโฟลเดอร์ของ user คนที่ร้องขอเท่านั้น
+    // (ตอนอัปโหลดทุกไฟล์ถูกเก็บที่ path `${user.id}/...`)
+    if (!filePath.startsWith(`${user.id}/`)) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     // ตรวจสอบว่า analysis นี้เป็นของ user คนนี้จริง
     const { data: ownerCheck } = await supabase
       .from('analyses')
