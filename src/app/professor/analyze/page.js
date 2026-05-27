@@ -15,6 +15,8 @@ export default function ProfessorAnalyzePage() {
   const [selectedPosition, setSelectedPosition] = useState('')
   const [customPosition, setCustomPosition] = useState('')
   const [useCustom, setUseCustom] = useState(false)
+  const [qualityMode, setQualityMode] = useState(false)
+  const [passThreshold, setPassThreshold] = useState(60)
 
   useEffect(() => {
     async function loadPositions() {
@@ -38,7 +40,83 @@ export default function ProfessorAnalyzePage() {
         </h1>
 
         <div className="card" style={{ padding: 32 }}>
-          {/* Position selector */}
+
+          {/* Quality Review Mode toggle */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '14px 18px',
+            borderRadius: 'var(--radius-md)',
+            background: qualityMode ? '#FEF3C7' : 'var(--input-bg)',
+            border: '1.5px solid ' + (qualityMode ? '#F59E0B' : 'var(--border)'),
+            marginBottom: 24,
+            transition: 'all 0.2s'
+          }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: qualityMode ? '#92400E' : 'var(--text-dark)' }}>
+                  📋 Quality Review Mode
+                </span>
+                {qualityMode && (
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 99,
+                    background: '#F59E0B', color: '#fff', letterSpacing: 0.5
+                  }}>เปิดอยู่</span>
+                )}
+              </div>
+              <p style={{ fontSize: 12, color: qualityMode ? '#92400E' : 'var(--text-gray)', lineHeight: 1.4 }}>
+                ตรวจคุณภาพการเขียนเรซูเม่ โดยไม่สนตำแหน่งงาน — เหมาะสำหรับตรวจ batch เพื่อบอก "ผ่าน / ไม่ผ่าน"
+              </p>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginLeft: 16 }}>
+              <input
+                type="checkbox"
+                checked={qualityMode}
+                onChange={e => setQualityMode(e.target.checked)}
+                style={{ width: 20, height: 20, cursor: 'pointer', accentColor: '#F59E0B' }}
+              />
+            </label>
+          </div>
+
+          {/* Pass threshold (เฉพาะตอน Quality Mode) */}
+          {qualityMode && (
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)', display: 'block', marginBottom: 12 }}>
+                เกณฑ์ผ่าน (Pass threshold)
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <input
+                  type="range"
+                  min="30"
+                  max="90"
+                  step="5"
+                  value={passThreshold}
+                  onChange={e => setPassThreshold(parseInt(e.target.value))}
+                  style={{ flex: 1, accentColor: '#F59E0B' }}
+                />
+                <div style={{
+                  minWidth: 80,
+                  textAlign: 'center',
+                  padding: '6px 12px',
+                  background: '#FEF3C7',
+                  border: '1.5px solid #F59E0B',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: '#92400E'
+                }}>
+                  {passThreshold}<span style={{ fontSize: 11, color: '#92400E' }}> / 100</span>
+                </div>
+              </div>
+              <p style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 6 }}>
+                เรซูเม่ที่ได้คะแนนรวม ≥ {passThreshold} จะถูกจัดเป็น &ldquo;ผ่าน&rdquo;
+              </p>
+            </div>
+          )}
+
+          {/* Position selector — ซ่อนเมื่อ Quality Mode เปิด */}
+          {!qualityMode && (
           <div style={{ marginBottom: 28 }}>
             <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-dark)', display: 'block', marginBottom: 12 }}>
               {t('analyze.selectPosition')}
@@ -112,10 +190,13 @@ export default function ProfessorAnalyzePage() {
               </div>
             )}
           </div>
+          )}
 
           {/* Batch upload */}
           <BatchUploadForm
-            jobPosition={jobPosition}
+            jobPosition={qualityMode ? 'Quality Review' : jobPosition}
+            mode={qualityMode ? 'quality' : 'per-position'}
+            passThreshold={passThreshold}
             onComplete={(ids) => {
               // ไปหน้าผลลัพธ์ไฟล์แรกเสมอ (ถ้าหลายไฟล์จะมีปุ่ม prev/next)
               router.push(`${basePath}/analyze/${ids[0]}`)

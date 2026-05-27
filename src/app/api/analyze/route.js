@@ -38,7 +38,11 @@ export async function POST(request) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { analysisId, fileUrl: filePath, fileName, jobPosition } = await request.json()
+    const { analysisId, fileUrl: filePath, fileName, jobPosition, mode, passThreshold } = await request.json()
+
+    // mode = 'per-position' (default) | 'quality' (อาจารย์ตรวจ batch แบบไม่เลือกตำแหน่ง)
+    const evalMode = mode === 'quality' ? 'quality' : 'per-position'
+    const threshold = evalMode === 'quality' ? (parseInt(passThreshold) || 60) : null
 
     // ตรวจสอบ input
     if (!analysisId && analysisId !== 0) {
@@ -50,8 +54,11 @@ export async function POST(request) {
     if (!fileName || typeof fileName !== 'string') {
       return Response.json({ error: 'Invalid file name' }, { status: 400 })
     }
-    if (!jobPosition || typeof jobPosition !== 'string' || jobPosition.length > 200) {
-      return Response.json({ error: 'Invalid job position' }, { status: 400 })
+    // ใน quality mode ไม่บังคับให้ส่ง jobPosition
+    if (evalMode === 'per-position') {
+      if (!jobPosition || typeof jobPosition !== 'string' || jobPosition.length > 200) {
+        return Response.json({ error: 'Invalid job position' }, { status: 400 })
+      }
     }
 
     // ป้องกัน path traversal
@@ -125,25 +132,105 @@ export async function POST(request) {
       `${c.category} (0-${c.max_score}): ${c.description}`
     ).join('\n')
 
-    // Sanitize jobPosition เพื่อป้องกัน prompt injection
-    const sanitizedPosition = jobPosition.replace(/[^\w\s\-\.\/\(\)ก-๙เแโใไะาิีึืุูัํ็่้๊๋์]+/g, '').substring(0, 100)
-
-    // ดึง responsibilities + cached skill list ของตำแหน่งนี้
-    // required_skills เก็บ list ที่ AI generate ไว้จาก analyze ครั้งก่อน — ใช้เป็น baseline
-    // AI จะ review + revise แล้ว save กลับใหม่ทุก call (self-evolving cache)
-    const { data: positionData } = await supabase
-      .from('job_positions')
-      .select('responsibilities, required_skills')
-      .eq('name', sanitizedPosition)
-      .single()
-
-    const responsibilities = positionData?.responsibilities || ''
-    const cachedSkills = Array.isArray(positionData?.required_skills) ? positionData.required_skills : []
-    const cachedSkillsText = cachedSkills.length > 0
-      ? cachedSkills.map((s, i) => `${i + 1}. ${s}`).join('\n')
+    // Sanitize jobPosition (per-position mode เท่านั้น)
+    const sanitizedPosition = evalMode === 'per-position'
+      ? (jobPosition || '').replace(/[^\w\s\-\.\/\(\)ก-๙เแโใไะาิีึืุูัํ็่้๊๋์]+/g, '').substring(0, 100)
       : null
 
-    const prompt = `You are a SUPPORTIVE IT career advisor helping Thai university students prepare resumes for internships and entry-level positions. Give FAIR, EVIDENCE-BASED scores calibrated for student/intern level — not professional senior level. The goal is to help students improve, not to discourage them.
+    // ดึง responsibilities + cached skill list ของตำแหน่งนี้ (per-position mode เท่านั้น)
+    // required_skills เก็บ list ที่ AI generate ไว้จาก analyze ครั้งก่อน — ใช้เป็น baseline
+    // AI จะ review + revise แล้ว save กลับใหม่ทุก call (self-evolving cache)
+    let responsibilities = ''
+    let cachedSkills = []
+    let cachedSkillsText = null
+    if (evalMode === 'per-position') {
+      const { data: positionData } = await supabase
+        .from('job_positions')
+        .select('responsibilities, required_skills')
+        .eq('name', sanitizedPosition)
+        .single()
+
+      responsibilities = positionData?.responsibilities || ''
+      cachedSkills = Array.isArray(positionData?.required_skills) ? positionData.required_skills : []
+      cachedSkillsText = cachedSkills.length > 0
+        ? cachedSkills.map((s, i) => `${i + 1}. ${s}`).join('\n')
+        : null
+    }
+
+    // ───────────────────────────────────────────
+    // PROMPT BUILDER — มี 2 mode
+    // ───────────────────────────────────────────
+    const resumeBlock = `═══════════════════════════════════════════
+RESUME ${isImage ? '(แนบมาเป็นรูปภาพด้านล่าง — อ่านข้อความและข้อมูลทั้งหมดจากรูปภาพ)' : 'TEXT'}
+═══════════════════════════════════════════
+${isImage ? '(ดูเรซูเม่จากรูปภาพที่แนบ)' : resumeText.substring(0, 12000)}
+
+═══════════════════════════════════════════
+SCORING CATEGORIES (เกณฑ์ของแต่ละหมวดอยู่ใน description)
+═══════════════════════════════════════════
+${criteriaText}`
+
+    const scoresSchema = (criteriaData || []).map(c => `"${c.category}": <number 0-${c.max_score}>`).join(',\n    ')
+    const suggestionsSchema = (criteriaData || []).map(c => `"${c.category}": "<คำแนะนำภาษาไทยสำหรับหมวดนี้ — ทำตาม tone ที่ระบุใน description ของหมวด>"`).join(',\n    ')
+
+    let prompt
+    if (evalMode === 'quality') {
+      // Quality Review Mode — สำหรับอาจารย์ตรวจ batch โดยไม่สนตำแหน่งงาน
+      // ประเมินคุณภาพการเขียนเรซูเม่ + ความครบถ้วน + professional ของเนื้อหา
+      prompt = `You are a SUPPORTIVE resume craft reviewer for Thai university students. Your job is to evaluate RESUME WRITING QUALITY — NOT match to any specific job position.
+
+═══════════════════════════════════════════
+QUALITY REVIEW MODE
+═══════════════════════════════════════════
+อาจารย์อัปโหลด batch เรซูเม่นักศึกษาเพื่อตรวจว่า "เขียนเรซูเม่เป็นมั้ย" โดยไม่สนสายงาน
+- **ไม่ต้องเทียบกับตำแหน่งใดๆ** — ไม่มี Required Skills, ไม่มี Position Expected Skills
+- ประเมินคุณภาพ **การนำเสนอตัวเอง** ของผู้สมัคร: ครบถ้วน อ่านง่าย professional มี evidence ประกอบ
+- Pass threshold: ${threshold}/100 — ถ้าคะแนนรวม ≥ ${threshold} → ผ่าน
+
+═══════════════════════════════════════════
+SKILL ASSESSMENT (Quality-only — ไม่เทียบตำแหน่ง)
+═══════════════════════════════════════════
+สำหรับหมวด "ทักษะ" ใน quality mode:
+- ✅ ดูว่า candidate **list ทักษะชัดเจน** (จัดหมวด categorize / ไม่ปนเปกัน)
+- ✅ ดูว่ามี **evidence** ประกอบทักษะ (project / course / experience) หรือเป็นแค่ keyword stuffing
+- ✅ ดู professional ของ skill naming (ระบุเฉพาะเจาะจง vs กว้างเกินไป "เก่ง computer")
+- ❌ ห้ามตัดสินว่า skill "ตรงสาย / ไม่ตรงสาย" — ทุกสาขาเขียนเรซูเม่ดีได้
+
+═══════════════════════════════════════════
+GLOBAL SCORING CONTEXT
+═══════════════════════════════════════════
+ผู้สมัครเป็นนักศึกษา/เด็กจบใหม่ — ประเมินมาตรฐาน entry-level
+- ให้คะแนนแต่ละหมวดตามหลักฐานของหมวดนั้นเท่านั้น — ห้ามชดเชยหมวดอื่น
+- เกณฑ์ละเอียดของแต่ละหมวดอยู่ใน description ด้านล่าง — ใช้ description เป็นหลัก
+- Tone ของ suggestion: ให้กำลังใจ + แนะนำขั้นต่อไป
+
+${resumeBlock}
+
+═══════════════════════════════════════════
+OUTPUT FORMAT
+═══════════════════════════════════════════
+Respond ONLY with valid JSON:
+
+{
+  "skills_analysis": {
+    "skills_found_in_resume": ["ทักษะทั้งหมดที่พบในเรซูเม่ (ไม่กรองตามตำแหน่ง)"],
+    "skills_with_evidence": ["ทักษะที่มี project / course / experience ประกอบ"],
+    "skills_without_evidence": ["ทักษะที่ระบุชื่อเฉยๆ ไม่มีหลักฐาน"],
+    "evidence_quality": "<none|mentioned_only|with_examples|with_projects>",
+    "writing_clarity_notes": "<สังเกตเรื่องการเขียน — มี typo / โครงสร้างชัดมั้ย / ใช้ active verb มั้ย>"
+  },
+  "scores": {
+    ${scoresSchema}
+  },
+  "suggestions": {
+    ${suggestionsSchema}
+  },
+  "summary": "<สรุปภาษาไทย 2-3 ประโยค เน้นจุดแข็งของการเขียนเรซูเม่ + ส่วนที่ควรปรับ>",
+  "candidate_name": "<ชื่อ-นามสกุล หรือ null>"
+}`
+    } else {
+      // Per-Position Mode (default) — ของเดิม เทียบกับตำแหน่งที่เลือก
+      prompt = `You are a SUPPORTIVE IT career advisor helping Thai university students prepare resumes for internships and entry-level positions. Give FAIR, EVIDENCE-BASED scores calibrated for student/intern level — not professional senior level. The goal is to help students improve, not to discourage them.
 
 ═══════════════════════════════════════════
 TARGET POSITION: ${sanitizedPosition}
@@ -190,15 +277,7 @@ GLOBAL SCORING CONTEXT
 - เกณฑ์ละเอียดของแต่ละหมวดอยู่ใน description ด้านล่าง — ใช้ description เป็นหลักในการตัดสิน
 - ถ้า description ของหมวดไม่ระบุ tone ของ suggestion ให้ default = ให้กำลังใจ + แนะนำขั้นต่อไป (ไม่ใช่ตำหนิ)
 
-═══════════════════════════════════════════
-RESUME ${isImage ? '(แนบมาเป็นรูปภาพด้านล่าง — อ่านข้อความและข้อมูลทั้งหมดจากรูปภาพ)' : 'TEXT'}
-═══════════════════════════════════════════
-${isImage ? '(ดูเรซูเม่จากรูปภาพที่แนบ)' : resumeText.substring(0, 12000)}
-
-═══════════════════════════════════════════
-SCORING CATEGORIES (เกณฑ์ของแต่ละหมวดอยู่ใน description)
-═══════════════════════════════════════════
-${criteriaText}
+${resumeBlock}
 
 ═══════════════════════════════════════════
 OUTPUT FORMAT
@@ -216,14 +295,15 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
     "evidence_quality": "<none|mentioned_only|with_examples|with_projects>"
   },
   "scores": {
-    ${(criteriaData || []).map(c => `"${c.category}": <number 0-${c.max_score}>`).join(',\n    ')}
+    ${scoresSchema}
   },
   "suggestions": {
-    ${(criteriaData || []).map(c => `"${c.category}": "<คำแนะนำภาษาไทยสำหรับหมวดนี้ — ทำตาม tone ที่ระบุใน description ของหมวด>"`).join(',\n    ')}
+    ${suggestionsSchema}
   },
   "summary": "<สรุปภาษาไทย 2-3 ประโยค>",
   "candidate_name": "<ชื่อ-นามสกุล หรือ null>"
 }`
+    }
 
     // ถ้าเป็นรูป → ส่ง prompt + image เข้าโมเดล (multimodal), ถ้าเป็น text → ส่ง prompt เดี่ยว
     const userContent = imageDataUrl
@@ -278,7 +358,9 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
         suggestions: { ...result.suggestions, summary: result.summary },
         skills_analysis: result.skills_analysis || null,
         status: 'completed',
-        extracted_name: extractedName
+        extracted_name: extractedName,
+        evaluation_mode: evalMode,
+        pass_threshold: threshold
       })
       .eq('id', analysisId)
 
@@ -287,17 +369,19 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
       return Response.json({ error: 'SAVE_FAILED' }, { status: 500 })
     }
 
-    // 7. Save / update AI-generated skill list กลับเข้า job_positions
+    // 7. Save / update AI-generated skill list กลับเข้า job_positions (per-position mode เท่านั้น)
     //    (self-evolving cache: ครั้งหน้า AI จะเห็น list นี้ + พิจารณา revise)
-    const aiSkillList = result.skills_analysis?.position_expected_skills
-    if (Array.isArray(aiSkillList) && aiSkillList.length > 0) {
-      const { error: skillSaveError } = await supabase
-        .from('job_positions')
-        .update({ required_skills: aiSkillList })
-        .eq('name', sanitizedPosition)
-      if (skillSaveError) {
-        // ไม่ล้มเหลวทั้ง request — แค่ log
-        console.error('Skill list save error:', skillSaveError.message)
+    if (evalMode === 'per-position') {
+      const aiSkillList = result.skills_analysis?.position_expected_skills
+      if (Array.isArray(aiSkillList) && aiSkillList.length > 0) {
+        const { error: skillSaveError } = await supabase
+          .from('job_positions')
+          .update({ required_skills: aiSkillList })
+          .eq('name', sanitizedPosition)
+        if (skillSaveError) {
+          // ไม่ล้มเหลวทั้ง request — แค่ log
+          console.error('Skill list save error:', skillSaveError.message)
+        }
       }
     }
 
@@ -306,7 +390,10 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
       totalScore,
       scores: result.scores,
       suggestions: { ...result.suggestions, summary: result.summary },
-      skills_analysis: result.skills_analysis || null
+      skills_analysis: result.skills_analysis || null,
+      evaluation_mode: evalMode,
+      pass_threshold: threshold,
+      passed: threshold !== null ? (totalScore >= threshold) : null
     })
 
   } catch (error) {
