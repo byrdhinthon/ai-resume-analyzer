@@ -128,16 +128,20 @@ export async function POST(request) {
     // Sanitize jobPosition เพื่อป้องกัน prompt injection
     const sanitizedPosition = jobPosition.replace(/[^\w\s\-\.\/\(\)ก-๙เแโใไะาิีึืุูัํ็่้๊๋์]+/g, '').substring(0, 100)
 
-    // ดึงแค่ responsibilities ของตำแหน่งนี้ — required_skills + nice_to_have
-    // ไม่ใช้แล้ว เพราะให้ AI generate skill list เองตาม intern context
-    // (columns ใน DB ยังเก็บไว้สำหรับ backward compat — ไม่ลบทิ้ง)
+    // ดึง responsibilities + cached skill list ของตำแหน่งนี้
+    // required_skills เก็บ list ที่ AI generate ไว้จาก analyze ครั้งก่อน — ใช้เป็น baseline
+    // AI จะ review + revise แล้ว save กลับใหม่ทุก call (self-evolving cache)
     const { data: positionData } = await supabase
       .from('job_positions')
-      .select('responsibilities')
+      .select('responsibilities, required_skills')
       .eq('name', sanitizedPosition)
       .single()
 
     const responsibilities = positionData?.responsibilities || ''
+    const cachedSkills = Array.isArray(positionData?.required_skills) ? positionData.required_skills : []
+    const cachedSkillsText = cachedSkills.length > 0
+      ? cachedSkills.map((s, i) => `${i + 1}. ${s}`).join('\n')
+      : null
 
     const prompt = `You are a SUPPORTIVE IT career advisor helping Thai university students prepare resumes for internships and entry-level positions. Give FAIR, EVIDENCE-BASED scores calibrated for student/intern level — not professional senior level. The goal is to help students improve, not to discourage them.
 
@@ -151,7 +155,17 @@ ${responsibilities || '(ไม่ได้ระบุ — ใช้ความ
 ═══════════════════════════════════════════
 SKILL ASSESSMENT TASK (ทำตามลำดับ)
 ═══════════════════════════════════════════
-**Step 1:** คิดว่าตำแหน่ง **${sanitizedPosition}** ระดับ intern / entry-level "ควรมีทักษะอะไร" — list 5-8 อันที่จำเป็นจริงๆ
+**Step 1:** คิด skill list สำหรับตำแหน่ง **${sanitizedPosition}** ระดับ intern / entry-level
+${cachedSkillsText
+  ? `**มี skill list ที่ AI generate ไว้จาก analyze ครั้งก่อน (saved cache):**
+${cachedSkillsText}
+
+Review list นี้:
+- ถ้าครอบคลุม intern level อยู่แล้ว → ใช้ตามเดิม (output position_expected_skills เหมือนเดิม)
+- ถ้ามีจุดควรปรับ (ทักษะหมดความนิยม / ขาดทักษะใหม่ / กว้างไป / แคบไป) → revise แล้ว output list ใหม่
+- พยายาม "เสถียร" — อย่าเปลี่ยนถ้าไม่จำเป็น เพื่อให้คะแนนของผู้สมัครแต่ละคนเทียบกันได้`
+  : `ยังไม่มี cached list — generate 5-8 ทักษะที่ตำแหน่งนี้ควรมีระดับ intern เป็น baseline แรก`
+}
 - คิดในมุมมองตลาดงาน IT ไทย (JobsDB / LinkedIn jobs)
 - intern level ไม่ใช่ senior — เลือกทักษะพื้นฐาน-ระดับกลาง ไม่ใช่ advanced
 - รวมทั้ง hard skill (เทคโนโลยี/ภาษา/framework) + พื้นฐานจำเป็น (Git, debug, การอ่าน doc)
@@ -271,6 +285,20 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
     if (updateError) {
       console.error('Update error:', updateError.message)
       return Response.json({ error: 'SAVE_FAILED' }, { status: 500 })
+    }
+
+    // 7. Save / update AI-generated skill list กลับเข้า job_positions
+    //    (self-evolving cache: ครั้งหน้า AI จะเห็น list นี้ + พิจารณา revise)
+    const aiSkillList = result.skills_analysis?.position_expected_skills
+    if (Array.isArray(aiSkillList) && aiSkillList.length > 0) {
+      const { error: skillSaveError } = await supabase
+        .from('job_positions')
+        .update({ required_skills: aiSkillList })
+        .eq('name', sanitizedPosition)
+      if (skillSaveError) {
+        // ไม่ล้มเหลวทั้ง request — แค่ log
+        console.error('Skill list save error:', skillSaveError.message)
+      }
     }
 
     return Response.json({
