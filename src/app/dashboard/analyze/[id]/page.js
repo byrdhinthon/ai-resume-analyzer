@@ -30,7 +30,7 @@ export default function AnalysisResultPage({ params }) {
   async function loadAnalysis() {
     const [{ data, error }, { data: criteriaData }] = await Promise.all([
       supabase.from('analyses')
-        .select('id, user_id, file_name, file_url, job_position, total_score, scores, suggestions, status, created_at')
+        .select('id, user_id, file_name, file_url, job_position, total_score, scores, suggestions, status, created_at, skills_analysis, evaluation_mode, pass_threshold')
         .eq('id', id).single(),
       supabase.from('scoring_criteria')
         .select('category, max_score')
