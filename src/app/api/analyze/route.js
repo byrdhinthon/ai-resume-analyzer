@@ -25,6 +25,8 @@ async function extractDocxText(buffer) {
 }
 
 export async function POST(request) {
+  // hoist ไว้ให้ catch ก้อนนอกเข้าถึงได้ — ใช้ mark failed กัน stuck pending
+  let capturedAnalysisId = null
   try {
     // 0. ตรวจสอบ auth
     const authHeader = request.headers.get('Authorization')
@@ -39,6 +41,7 @@ export async function POST(request) {
     }
 
     const { analysisId, fileUrl: filePath, fileName, jobPosition, mode, passThreshold } = await request.json()
+    capturedAnalysisId = (analysisId || analysisId === 0) ? analysisId : null
 
     // mode = 'per-position' (default) | 'quality' (อาจารย์ตรวจ batch แบบไม่เลือกตำแหน่ง)
     const evalMode = mode === 'quality' ? 'quality' : 'per-position'
@@ -414,6 +417,12 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
 
   } catch (error) {
     console.error('Analyze error:', error)
+    // mark analysis เป็น failed กัน stuck pending เมื่อมี exception ดิบหลุดมาถึงตรงนี้
+    if (capturedAnalysisId !== null) {
+      try {
+        await supabase.from('analyses').update({ status: 'failed' }).eq('id', capturedAnalysisId)
+      } catch (_) { /* update ไม่ได้ก็ปล่อย — อย่างน้อย return error ให้ client */ }
+    }
     return Response.json({ error: 'ANALYZE_ERROR' }, { status: 500 })
   }
 }
