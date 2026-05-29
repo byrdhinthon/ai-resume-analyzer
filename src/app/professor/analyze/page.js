@@ -66,7 +66,7 @@ export default function ProfessorAnalyzePage() {
                 )}
               </div>
               <p style={{ fontSize: 12, color: qualityMode ? '#92400E' : 'var(--text-gray)', lineHeight: 1.4 }}>
-                ตรวจคุณภาพการเขียนเรซูเม่ โดยไม่สนตำแหน่งงาน — เหมาะสำหรับตรวจ batch เพื่อบอก "ผ่าน / ไม่ผ่าน"
+                ตรวจคุณภาพการเขียนเรซูเม่ โดยไม่สนตำแหน่งงาน — เหมาะสำหรับตรวจ batch เพื่อบอก &ldquo;ผ่าน / ไม่ผ่าน&rdquo;
               </p>
             </div>
             <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginLeft: 16 }}>
