@@ -14,9 +14,10 @@ export default function ProfessorAnalyzePage() {
   const [jobPositions, setJobPositions] = useState([])
   const [selectedPosition, setSelectedPosition] = useState('')
   const [customPosition, setCustomPosition] = useState('')
-  const [useCustom, setUseCustom] = useState(false)
+  // positionMode: 'list' (เลือกจากรายการ) | 'custom' (กรอกเอง) | 'ai' (ให้ AI แนะนำ)
+  const [positionMode, setPositionMode] = useState('list')
   const [qualityMode, setQualityMode] = useState(false)
-  const [passThreshold, setPassThreshold] = useState(60)
+  const [passThreshold, setPassThreshold] = useState(70)
 
   useEffect(() => {
     async function loadPositions() {
@@ -30,7 +31,13 @@ export default function ProfessorAnalyzePage() {
     loadPositions()
   }, [])
 
-  const jobPosition = useCustom ? customPosition.trim() : selectedPosition
+  const jobPosition = positionMode === 'custom' ? customPosition.trim() : selectedPosition
+
+  // คำนวณ mode ที่จะส่งให้ API:
+  //  Quality toggle on → 'quality'
+  //  positionMode 'ai' → 'ai-suggest' (AI เลือกตำแหน่งเอง)
+  //  อื่นๆ → 'per-position'
+  const analyzeMode = qualityMode ? 'quality' : (positionMode === 'ai' ? 'ai-suggest' : 'per-position')
 
   return (
     <AuthLayout requiredRole={basePath === '/admin' ? 'admin' : 'professor'}>
@@ -66,7 +73,7 @@ export default function ProfessorAnalyzePage() {
                 )}
               </div>
               <p style={{ fontSize: 12, color: qualityMode ? '#92400E' : 'var(--text-gray)', lineHeight: 1.4 }}>
-                ตรวจคุณภาพการเขียนเรซูเม่ โดยไม่สนตำแหน่งงาน — เหมาะสำหรับตรวจ batch เพื่อบอก "ผ่าน / ไม่ผ่าน"
+                ตรวจคุณภาพการเขียนเรซูเม่ โดยไม่สนตำแหน่งงาน — เหมาะสำหรับตรวจ batch เพื่อบอก &ldquo;ผ่าน / ไม่ผ่าน&rdquo;
               </p>
             </div>
             <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginLeft: 16 }}>
@@ -122,16 +129,17 @@ export default function ProfessorAnalyzePage() {
               {t('analyze.selectPosition')}
             </label>
 
-            {/* Toggle pills */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+            {/* Toggle pills — 3 ทาง: เลือกจากรายการ / กรอกเอง / ให้ AI แนะนำ */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
               {[
-                { label: t('analyze.fromList'), value: false },
-                { label: t('analyze.custom'), value: true }
+                { label: t('analyze.fromList'), value: 'list' },
+                { label: t('analyze.custom'), value: 'custom' },
+                { label: '🤖 ให้ AI แนะนำ', value: 'ai' }
               ].map(opt => (
                 <button
-                  key={String(opt.value)}
+                  key={opt.value}
                   type="button"
-                  onClick={() => setUseCustom(opt.value)}
+                  onClick={() => setPositionMode(opt.value)}
                   style={{
                     padding: '8px 18px',
                     borderRadius: 'var(--radius-pill)',
@@ -140,9 +148,9 @@ export default function ProfessorAnalyzePage() {
                     fontWeight: 500,
                     cursor: 'pointer',
                     transition: 'all 0.15s',
-                    borderColor: useCustom === opt.value ? 'var(--primary)' : 'var(--border)',
-                    background: useCustom === opt.value ? 'var(--primary-light)' : 'transparent',
-                    color: useCustom === opt.value ? 'var(--primary)' : 'var(--text-gray)',
+                    borderColor: positionMode === opt.value ? 'var(--primary)' : 'var(--border)',
+                    background: positionMode === opt.value ? 'var(--primary-light)' : 'transparent',
+                    color: positionMode === opt.value ? 'var(--primary)' : 'var(--text-gray)',
                   }}
                 >
                   {opt.label}
@@ -150,7 +158,7 @@ export default function ProfessorAnalyzePage() {
               ))}
             </div>
 
-            {!useCustom ? (
+            {positionMode === 'list' && (
               <div className="input-wrap" style={{ cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, color: 'var(--text-light)' }}>
                   <rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
@@ -175,7 +183,9 @@ export default function ProfessorAnalyzePage() {
                   <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-            ) : (
+            )}
+
+            {positionMode === 'custom' && (
               <div className="input-wrap">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, color: 'var(--text-light)' }}>
                   <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" stroke="currentColor" strokeWidth="2"/>
@@ -189,16 +199,29 @@ export default function ProfessorAnalyzePage() {
                 />
               </div>
             )}
+
+            {positionMode === 'ai' && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '14px 18px', borderRadius: 'var(--radius-md)',
+                background: 'var(--primary-light)', border: '1.5px solid var(--primary)'
+              }}>
+                <span style={{ fontSize: 20 }}>🤖</span>
+                <p style={{ fontSize: 13, color: 'var(--primary)', lineHeight: 1.5 }}>
+                  AI จะอ่านเรซูเม่แล้วเลือกตำแหน่งที่เหมาะกับแต่ละคนให้เอง — แล้วให้คะแนนตามตำแหน่งนั้น
+                </p>
+              </div>
+            )}
           </div>
           )}
 
           {/* Batch upload */}
           <BatchUploadForm
-            jobPosition={qualityMode ? 'Quality Review' : jobPosition}
-            mode={qualityMode ? 'quality' : 'per-position'}
+            jobPosition={analyzeMode === 'per-position' ? jobPosition : analyzeMode === 'quality' ? 'Quality Review' : 'AI Suggested'}
+            mode={analyzeMode}
             passThreshold={passThreshold}
             onComplete={(ids) => {
-              // ไปหน้าผลลัพธ์ไฟล์แรกเสมอ (ถ้าหลายไฟล์จะมีปุ่ม prev/next)
+              // ไปหน้าผลลัพธ์ไฟล์แรก (per-position) หรือไฟล์ที่คลิกในตาราง (quality/ai-suggest)
               router.push(`${basePath}/analyze/${ids[0]}`)
             }}
           />

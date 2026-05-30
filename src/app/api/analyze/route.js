@@ -11,6 +11,20 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
+// แปลง error code → ข้อความภาษาคนที่ user ทั่วไปเข้าใจ + บอกวิธีแก้
+const ERROR_MESSAGES = {
+  DOWNLOAD_FAILED: 'ดาวน์โหลดไฟล์จากระบบไม่สำเร็จ ลองอัปโหลดไฟล์นี้ใหม่อีกครั้ง',
+  UNSUPPORTED_FILE_TYPE: 'ไฟล์ชนิดนี้ไม่รองรับ — รองรับเฉพาะ PDF, Word (.docx) และรูปภาพ (PNG/JPG) เท่านั้น',
+  CANNOT_READ_FILE: 'อ่านข้อความในไฟล์ไม่ได้ — ไฟล์อาจเป็นรูปสแกนที่ไม่มีข้อความ หรือไฟล์เสียหาย ลองบันทึกเป็น PDF ใหม่แล้วอัปโหลดอีกครั้ง',
+  AI_INVALID_RESPONSE: 'ระบบ AI ประมวลผลไฟล์นี้ไม่สำเร็จ (อาจเพราะระบบใช้งานหนักชั่วคราว) กดวิเคราะห์ใหม่อีกครั้งได้เลย',
+  AI_TIMEOUT: 'ระบบ AI ใช้เวลานานเกินไปหรือใช้งานหนักชั่วคราว ลองวิเคราะห์ใหม่อีกครั้งในอีกสักครู่',
+  SAVE_FAILED: 'บันทึกผลการวิเคราะห์ไม่สำเร็จ ลองวิเคราะห์ใหม่อีกครั้ง',
+  ANALYZE_ERROR: 'เกิดข้อผิดพลาดระหว่างวิเคราะห์ ลองวิเคราะห์ใหม่อีกครั้ง ถ้ายังไม่ได้ลองเปลี่ยนไฟล์',
+}
+function humanError(code) {
+  return ERROR_MESSAGES[code] || 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ ลองวิเคราะห์ใหม่อีกครั้ง'
+}
+
 async function extractPdfText(buffer) {
   const { extractText } = await import('unpdf')
   const uint8Array = new Uint8Array(buffer)
@@ -43,9 +57,12 @@ export async function POST(request) {
     const { analysisId, fileUrl: filePath, fileName, jobPosition, mode, passThreshold } = await request.json()
     capturedAnalysisId = (analysisId || analysisId === 0) ? analysisId : null
 
-    // mode = 'per-position' (default) | 'quality' (อาจารย์ตรวจ batch แบบไม่เลือกตำแหน่ง)
-    const evalMode = mode === 'quality' ? 'quality' : 'per-position'
-    const threshold = evalMode === 'quality' ? (parseInt(passThreshold) || 60) : null
+    // mode มี 3 แบบ:
+    //  'per-position' (default) — เลือก/กรอกตำแหน่งเอง
+    //  'quality'                — อาจารย์ตรวจ batch ไม่เลือกตำแหน่ง + AI แนะนำอาชีพ
+    //  'ai-suggest'             — AI เลือกตำแหน่งที่เหมาะสมให้เอง แล้วให้คะแนนตามตำแหน่งนั้น
+    const evalMode = ['quality', 'ai-suggest'].includes(mode) ? mode : 'per-position'
+    const threshold = evalMode === 'quality' ? (parseInt(passThreshold) || 70) : null
 
     // ตรวจสอบ input
     if (!analysisId && analysisId !== 0) {
@@ -57,7 +74,7 @@ export async function POST(request) {
     if (!fileName || typeof fileName !== 'string') {
       return Response.json({ error: 'Invalid file name' }, { status: 400 })
     }
-    // ใน quality mode ไม่บังคับให้ส่ง jobPosition
+    // บังคับ jobPosition เฉพาะ per-position mode (quality + ai-suggest ไม่ต้องส่ง)
     if (evalMode === 'per-position') {
       if (!jobPosition || typeof jobPosition !== 'string' || jobPosition.length > 200) {
         return Response.json({ error: 'Invalid job position' }, { status: 400 })
@@ -91,10 +108,14 @@ export async function POST(request) {
       return Response.json({ error: 'Analysis already processed' }, { status: 400 })
     }
 
-    // helper: ตั้งสถานะเป็น failed เพื่อไม่ให้รายการค้าง pending เมื่อประมวลผลล้มเหลว
+    // helper: ตั้งสถานะ failed + เก็บ error message ภาษาคน เพื่อไม่ให้ค้าง pending
+    // + ให้ user เห็นว่า fail เพราะอะไร (ไม่ใช่ error code ดิบ)
     const fail = async (code, status) => {
-      await supabase.from('analyses').update({ status: 'failed' }).eq('id', analysisId)
-      return Response.json({ error: code }, { status })
+      const message = humanError(code)
+      await supabase.from('analyses')
+        .update({ status: 'failed', error_message: message })
+        .eq('id', analysisId)
+      return Response.json({ error: code, message }, { status })
     }
 
     // 1. ดึงไฟล์จาก Supabase Storage
@@ -212,6 +233,14 @@ SKILL ASSESSMENT (Quality-only — ไม่เทียบตำแหน่ง
 - ❌ ห้ามตัดสินว่า skill "ตรงสาย / ไม่ตรงสาย" — ทุกสาขาเขียนเรซูเม่ดีได้
 
 ═══════════════════════════════════════════
+CAREER RECOMMENDATION (สำคัญ)
+═══════════════════════════════════════════
+นอกจากตรวจคุณภาพ — ให้ดูทักษะ/ประสบการณ์/การศึกษาในเรซูเม่ แล้วแนะนำ **ตำแหน่งงาน/อาชีพสาย IT ที่เหมาะกับ candidate คนนี้มากที่สุด 1-2 ตำแหน่ง**
+- เลือกจากหลักฐานจริงในเรซูเม่ (เช่น มี React/HTML/CSS → Frontend Developer)
+- ระบุเป็นชื่อตำแหน่งที่ใช้ในตลาดงานจริง (Backend Developer, Data Analyst, Mobile App Developer, ฯลฯ)
+- ถ้าทักษะกระจายหลายสาย เลือกสายที่หลักฐานหนักแน่นสุด
+
+═══════════════════════════════════════════
 GLOBAL SCORING CONTEXT
 ═══════════════════════════════════════════
 ผู้สมัครเป็นนักศึกษา/เด็กจบใหม่ — ประเมินมาตรฐาน entry-level
@@ -234,6 +263,8 @@ Respond ONLY with valid JSON:
     "evidence_quality": "<none|mentioned_only|with_examples|with_projects>",
     "writing_clarity_notes": "<สังเกตเรื่องการเขียน — มี typo / โครงสร้างชัดมั้ย / ใช้ active verb มั้ย>"
   },
+  "recommended_careers": ["ตำแหน่ง/อาชีพ IT ที่เหมาะกับ candidate 1-2 ตำแหน่ง (ชื่อตำแหน่งจริงในตลาดงาน)"],
+  "recommended_career_reason": "<เหตุผลสั้นๆ ภาษาไทย ว่าทำไมแนะนำตำแหน่งนี้ อิงจากทักษะ/ผลงานในเรซูเม่>",
   "scores": {
     ${scoresSchema}
   },
@@ -241,6 +272,56 @@ Respond ONLY with valid JSON:
     ${suggestionsSchema}
   },
   "summary": "<สรุปภาษาไทย 2-3 ประโยค เน้นจุดแข็งของการเขียนเรซูเม่ + ส่วนที่ควรปรับ>",
+  "candidate_name": "<ชื่อ-นามสกุล หรือ null>"
+}`
+    } else if (evalMode === 'ai-suggest') {
+      // AI Suggest Mode — AI เลือกตำแหน่งที่เหมาะกับ candidate เอง แล้วให้คะแนนตามตำแหน่งนั้น
+      prompt = `You are a SUPPORTIVE IT career advisor for Thai university students. ขั้นแรกให้เลือกตำแหน่งที่เหมาะกับ candidate จากเรซูเม่ แล้วประเมินคะแนนตามตำแหน่งนั้น — ระดับ intern / entry-level
+
+═══════════════════════════════════════════
+STEP A: เลือกตำแหน่งที่เหมาะที่สุด
+═══════════════════════════════════════════
+อ่านเรซูเม่ → เลือกตำแหน่งงาน IT **1 ตำแหน่ง** ที่ candidate เหมาะที่สุด (อิงทักษะ/ผลงาน/การศึกษาจริง)
+- ใช้ชื่อตำแหน่งจริงในตลาดงานไทย (Backend Developer, Frontend Developer, Data Analyst, Mobile App Developer, Software Tester, System Administrator, ฯลฯ)
+- เลือกสายที่หลักฐานหนักแน่นสุด
+
+═══════════════════════════════════════════
+STEP B: ประเมินตามตำแหน่งที่เลือก (Step A)
+═══════════════════════════════════════════
+- คิดทักษะที่ตำแหน่งนั้นต้องการระดับ intern (5-8 อัน)
+- เทียบกับเรซูเม่ → มี / ขาด (ทักษะเทียบเคียงกันได้ให้นับว่ามี เช่น MongoDB = database)
+- ให้คะแนนแต่ละหมวดตามเกณฑ์ใน description — ห้ามชดเชยหมวดอื่น
+
+═══════════════════════════════════════════
+GLOBAL CONTEXT
+═══════════════════════════════════════════
+ผู้สมัครเป็นนักศึกษา/เด็กฝึกงาน — ประเมิน entry-level, school/personal project นับเป็นหลักฐานได้
+Tone ของ suggestion: ให้กำลังใจ + แนะนำขั้นต่อไป
+
+${resumeBlock}
+
+═══════════════════════════════════════════
+OUTPUT FORMAT
+═══════════════════════════════════════════
+Respond ONLY with valid JSON:
+
+{
+  "ai_chosen_position": "<ตำแหน่งที่ AI เลือกใน Step A>",
+  "ai_chosen_reason": "<เหตุผลสั้นๆ ภาษาไทย ว่าทำไมเลือกตำแหน่งนี้>",
+  "skills_analysis": {
+    "position_expected_skills": ["ทักษะที่ตำแหน่งนี้ควรมีระดับ intern (5-8 อัน)"],
+    "candidate_has": ["ทักษะที่พบในเรซูเม่และตรงกับ expected (รวมที่เทียบเคียงได้)"],
+    "candidate_missing": ["ทักษะใน expected ที่ไม่พบในเรซูเม่"],
+    "candidate_extras_relevant": ["ทักษะพิเศษที่เกี่ยวข้องแม้ไม่อยู่ใน expected list"],
+    "evidence_quality": "<none|mentioned_only|with_examples|with_projects>"
+  },
+  "scores": {
+    ${scoresSchema}
+  },
+  "suggestions": {
+    ${suggestionsSchema}
+  },
+  "summary": "<สรุปภาษาไทย 2-3 ประโยค>",
   "candidate_name": "<ชื่อ-นามสกุล หรือ null>"
 }`
     } else {
@@ -328,12 +409,32 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
         ]
       : prompt
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-5.4-nano',
-      messages: [{ role: 'user', content: userContent }],
-      temperature: 0,
-      max_completion_tokens: 3000
-    })
+    // เรียก OpenAI พร้อม retry — กัน transient error (timeout / rate limit / เน็ตสะดุด)
+    // ที่เป็นสาเหตุหลักของไฟล์ที่ fail ระหว่าง batch (ยิงหลายไฟล์ติดกัน)
+    let completion = null
+    let lastErr = null
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        completion = await openai.chat.completions.create({
+          model: 'gpt-5.4-nano',
+          messages: [{ role: 'user', content: userContent }],
+          temperature: 0,
+          max_completion_tokens: 3000
+        })
+        break // สำเร็จ → ออกจาก loop
+      } catch (err) {
+        lastErr = err
+        console.error(`OpenAI attempt ${attempt}/3 failed:`, err?.message || err)
+        // รอแบบ exponential backoff ก่อน retry (0.8s, 1.6s) — ยกเว้นรอบสุดท้าย
+        if (attempt < 3) {
+          await new Promise(r => setTimeout(r, 800 * attempt))
+        }
+      }
+    }
+    if (!completion) {
+      console.error('OpenAI failed after 3 attempts:', lastErr?.message || lastErr)
+      return await fail('AI_TIMEOUT', 500)
+    }
 
     const rawContent = completion.choices?.[0]?.message?.content
     if (!rawContent) {
@@ -367,20 +468,46 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
 
     const totalScore = Object.values(result.scores).reduce((a, b) => a + b, 0)
 
+    // อาชีพที่แนะนำ:
+    //  quality mode    → จาก recommended_careers (list ที่ AI แนะนำ)
+    //  ai-suggest mode → จาก ai_chosen_position (ตำแหน่งที่ AI เลือกให้คะแนน)
+    let recommendedCareer = null
+    if (evalMode === 'quality' && Array.isArray(result.recommended_careers) && result.recommended_careers.length > 0) {
+      recommendedCareer = result.recommended_careers.join(', ')
+      if (result.recommended_career_reason) {
+        recommendedCareer += ` — ${result.recommended_career_reason}`
+      }
+    } else if (evalMode === 'ai-suggest' && result.ai_chosen_position) {
+      recommendedCareer = result.ai_chosen_position
+      if (result.ai_chosen_reason) {
+        recommendedCareer += ` — ${result.ai_chosen_reason}`
+      }
+    }
+
+    // ai-suggest: ใช้ตำแหน่งที่ AI เลือกเป็น job_position (เดิมส่ง 'AI Suggested' มา)
+    const finalJobPosition = (evalMode === 'ai-suggest' && result.ai_chosen_position)
+      ? result.ai_chosen_position
+      : undefined // undefined = ไม่ override ของเดิม
+
     // 6. อัปเดตผลลงตาราง analyses
     const extractedName = result.candidate_name && result.candidate_name !== 'null' ? result.candidate_name : null
+    const updatePayload = {
+      total_score: totalScore,
+      scores: result.scores,
+      suggestions: { ...result.suggestions, summary: result.summary },
+      skills_analysis: result.skills_analysis || null,
+      status: 'completed',
+      extracted_name: extractedName,
+      evaluation_mode: evalMode,
+      pass_threshold: threshold,
+      recommended_career: recommendedCareer,
+      error_message: null // เคลียร์ error เก่า (เผื่อเป็นการ retry)
+    }
+    if (finalJobPosition) updatePayload.job_position = finalJobPosition
+
     const { error: updateError } = await supabase
       .from('analyses')
-      .update({
-        total_score: totalScore,
-        scores: result.scores,
-        suggestions: { ...result.suggestions, summary: result.summary },
-        skills_analysis: result.skills_analysis || null,
-        status: 'completed',
-        extracted_name: extractedName,
-        evaluation_mode: evalMode,
-        pass_threshold: threshold
-      })
+      .update(updatePayload)
       .eq('id', analysisId)
 
     if (updateError) {
@@ -412,17 +539,21 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
       skills_analysis: result.skills_analysis || null,
       evaluation_mode: evalMode,
       pass_threshold: threshold,
-      passed: threshold !== null ? (totalScore >= threshold) : null
+      passed: threshold !== null ? (totalScore >= threshold) : null,
+      recommended_career: recommendedCareer,
+      extracted_name: extractedName
     })
 
   } catch (error) {
     console.error('Analyze error:', error)
-    // mark analysis เป็น failed กัน stuck pending เมื่อมี exception ดิบหลุดมาถึงตรงนี้
+    // mark analysis เป็น failed + เก็บ error message ภาษาคน กัน stuck pending
     if (capturedAnalysisId !== null) {
       try {
-        await supabase.from('analyses').update({ status: 'failed' }).eq('id', capturedAnalysisId)
+        await supabase.from('analyses')
+          .update({ status: 'failed', error_message: humanError('ANALYZE_ERROR') })
+          .eq('id', capturedAnalysisId)
       } catch (_) { /* update ไม่ได้ก็ปล่อย — อย่างน้อย return error ให้ client */ }
     }
-    return Response.json({ error: 'ANALYZE_ERROR' }, { status: 500 })
+    return Response.json({ error: 'ANALYZE_ERROR', message: humanError('ANALYZE_ERROR') }, { status: 500 })
   }
 }
