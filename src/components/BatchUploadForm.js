@@ -239,7 +239,7 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
                     {showSummaryTable && p.status === 'done' && (
                       <p style={{ fontSize: 12.5, color: 'var(--text-gray)', lineHeight: 1.5 }}>
                         <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                          {mode === 'quality' ? '🎯 อาชีพที่แนะนำ: ' : '🎯 ตำแหน่งที่ AI เลือก: '}
+                          {mode === 'quality' ? 'อาชีพที่แนะนำ: ' : 'ตำแหน่งที่ AI เลือก: '}
                         </span>
                         {p.career || '—'}
                       </p>

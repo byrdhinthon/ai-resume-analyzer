@@ -11,6 +11,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
+// จำกัดความยาวข้อความเรซูเม่ที่ส่งเข้า AI — รองรับ PDF หลายหน้า (เรซูเม่/portfolio ยาวๆ)
+// ~40,000 ตัวอักษร ≈ 15-20 หน้า กันไม่ให้หน้าท้ายๆ ถูกตัดทิ้ง
+const RESUME_TEXT_LIMIT = 40000
+
 // แปลง error code → ข้อความภาษาคนที่ user ทั่วไปเข้าใจ + บอกวิธีแก้
 const ERROR_MESSAGES = {
   DOWNLOAD_FAILED: 'ดาวน์โหลดไฟล์จากระบบไม่สำเร็จ ลองอัปโหลดไฟล์นี้ใหม่อีกครั้ง',
@@ -28,8 +32,12 @@ function humanError(code) {
 async function extractPdfText(buffer) {
   const { extractText } = await import('unpdf')
   const uint8Array = new Uint8Array(buffer)
-  const result = await extractText(uint8Array)
-  return String(result.text || '')
+  // mergePages: true → รวมทุกหน้าเป็นข้อความเดียว (PDF หลายหน้าอ่านครบ)
+  // ถ้าไม่ใส่ unpdf คืน text เป็น array ต่อหน้า → String() จะ join ด้วย comma เพี้ยน
+  const result = await extractText(uint8Array, { mergePages: true })
+  const text = result?.text
+  if (Array.isArray(text)) return text.join('\n\n')   // เผื่อบาง version ยังคืน array
+  return String(text || '')
 }
 
 // Extract text จาก DOCX
@@ -208,7 +216,7 @@ export async function POST(request) {
     const resumeBlock = `═══════════════════════════════════════════
 RESUME ${isImage ? '(แนบมาเป็นรูปภาพด้านล่าง — อ่านข้อความและข้อมูลทั้งหมดจากรูปภาพ)' : 'TEXT'}
 ═══════════════════════════════════════════
-${isImage ? '(ดูเรซูเม่จากรูปภาพที่แนบ)' : resumeText.substring(0, 12000)}${extractionNote}
+${isImage ? '(ดูเรซูเม่จากรูปภาพที่แนบ)' : resumeText.substring(0, RESUME_TEXT_LIMIT)}${extractionNote}
 
 ═══════════════════════════════════════════
 SCORING CATEGORIES (เกณฑ์ของแต่ละหมวดอยู่ใน description)

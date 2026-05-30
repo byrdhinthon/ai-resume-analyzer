@@ -63,7 +63,7 @@ export default function ProfessorAnalyzePage() {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: qualityMode ? '#92400E' : 'var(--text-dark)' }}>
-                  📋 Quality Review Mode
+                  Quality Review Mode
                 </span>
                 {qualityMode && (
                   <span style={{
@@ -134,7 +134,7 @@ export default function ProfessorAnalyzePage() {
               {[
                 { label: t('analyze.fromList'), value: 'list' },
                 { label: t('analyze.custom'), value: 'custom' },
-                { label: '🤖 ให้ AI แนะนำ', value: 'ai' }
+                { label: 'ให้ AI แนะนำ', value: 'ai' }
               ].map(opt => (
                 <button
                   key={opt.value}
@@ -202,11 +202,9 @@ export default function ProfessorAnalyzePage() {
 
             {positionMode === 'ai' && (
               <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
                 padding: '14px 18px', borderRadius: 'var(--radius-md)',
                 background: 'var(--primary-light)', border: '1.5px solid var(--primary)'
               }}>
-                <span style={{ fontSize: 20 }}>🤖</span>
                 <p style={{ fontSize: 13, color: 'var(--primary)', lineHeight: 1.5 }}>
                   AI จะอ่านเรซูเม่แล้วเลือกตำแหน่งที่เหมาะกับแต่ละคนให้เอง — แล้วให้คะแนนตามตำแหน่งนั้น
                 </p>
