@@ -51,6 +51,30 @@ export default function AnalysisDetailView({
         </p>
       </div>
 
+      {/* อาชีพที่ AI แนะนำ — เฉพาะ quality / ai-suggest mode */}
+      {analysis.recommended_career && (
+        <div style={{
+          background: '#EFF6FF',
+          border: '1.5px solid #3B82F6',
+          borderRadius: 'var(--radius-md)',
+          padding: '16px 20px',
+          marginBottom: 20,
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 12
+        }}>
+          <span style={{ fontSize: 22 }}>🎯</span>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#1D4ED8', marginBottom: 4 }}>
+              {analysis.evaluation_mode === 'ai-suggest' ? 'ตำแหน่งที่ AI เลือกประเมิน' : 'อาชีพที่แนะนำ'}
+            </p>
+            <p style={{ fontSize: 14, color: 'var(--text-dark)', lineHeight: 1.6 }}>
+              {analysis.recommended_career}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div style={{ marginBottom: 24, position: 'relative' }}>
         <ScoreOverview score={analysis.total_score} label={t('result.totalScore')} />
 

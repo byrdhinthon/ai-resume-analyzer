@@ -26,7 +26,7 @@ export default function ProfessorAnalysisDetail({ params }) {
       // Join analysis + profile in one query
       const { data: a } = await supabase
         .from('analyses')
-        .select('id, user_id, file_name, file_url, job_position, total_score, scores, suggestions, status, created_at, batch_id, extracted_name, skills_analysis, evaluation_mode, pass_threshold, profiles(first_name, last_name, student_id, username)')
+        .select('id, user_id, file_name, file_url, job_position, total_score, scores, suggestions, status, created_at, batch_id, extracted_name, skills_analysis, evaluation_mode, pass_threshold, recommended_career, error_message, profiles(first_name, last_name, student_id, username)')
         .eq('id', id)
         .single()
 
