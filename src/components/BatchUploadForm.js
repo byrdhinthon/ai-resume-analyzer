@@ -112,7 +112,8 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
           analysisId: analysis.id,
           name: data.extracted_name || file.name,
           career: data.recommended_career || null,
-          passed: data.passed
+          passed: data.passed,
+          score: data.totalScore   // คะแนนรวม — ใช้แสดงในโหมด ai-suggest
         })
         return analysis.id
       } else {
@@ -197,29 +198,87 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
         </div>
       </label>
 
-      {/* รายการไฟล์ + สถานะ */}
+      {/* สรุปจำนวนผ่าน (quality mode หลังเสร็จ) */}
+      {showSummaryTable && finished && doneCount > 0 && mode === 'quality' && (
+        <p style={{ fontSize: 13, color: 'var(--text-gray)', marginTop: 16, marginBottom: -4 }}>
+          ผลการวิเคราะห์ {doneCount} คน · ผ่าน <strong style={{ color: '#16A34A' }}>{passedCount}</strong> / {doneCount}
+        </p>
+      )}
+
+      {/* รายการไฟล์ + สถานะ + ผลลัพธ์ inline */}
       {files.length > 0 && (
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {files.map((file, index) => {
             const fileKey = `${index}-${file.name}`
             const p = progress[fileKey] || {}
+            // โหมด quality/ai-suggest + ไฟล์เสร็จ → แถวคลิกได้ไปดูรายละเอียด
+            const clickable = showSummaryTable && p.status === 'done' && p.analysisId
             return (
-              <div key={fileKey} style={{ padding: '10px 14px', background: 'var(--surface)', borderRadius: 'var(--radius-sm)', border: '1px solid ' + (p.status === 'error' ? '#FCA5A5' : 'var(--border)') }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: 16 }}>{getStatusIcon(p.status)}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</p>
+              <div
+                key={fileKey}
+                onClick={() => clickable && onComplete && onComplete([p.analysisId])}
+                style={{
+                  padding: '12px 14px', background: 'var(--surface)', borderRadius: 'var(--radius-sm)',
+                  border: '1px solid ' + (p.status === 'error' ? '#FCA5A5' : p.status === 'done' && showSummaryTable ? '#86EFAC' : 'var(--border)'),
+                  cursor: clickable ? 'pointer' : 'default'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <span style={{ fontSize: 16, marginTop: 2 }}>{getStatusIcon(p.status)}</span>
+
+                  {/* ซ้าย: ชื่อไฟล์ / เจ้าของ / สถานะ */}
+                  <div style={{ flex: '0 0 30%', minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {p.status === 'done' && p.name ? p.name : file.name}
+                    </p>
                     <p style={{ fontSize: 11, color: 'var(--text-light)' }}>{(file.size / 1024 / 1024).toFixed(2)} MB{p.status && ` · ${getStatusText(p.status)}`}</p>
                   </div>
+
+                  {/* กลาง: ผลลัพธ์ (อาชีพแนะนำ / ตำแหน่งที่ AI เลือก) — ขึ้นทันทีที่เสร็จ */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {showSummaryTable && p.status === 'done' && (
+                      <p style={{ fontSize: 12.5, color: 'var(--text-gray)', lineHeight: 1.5 }}>
+                        <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                          {mode === 'quality' ? '🎯 อาชีพที่แนะนำ: ' : '🎯 ตำแหน่งที่ AI เลือก: '}
+                        </span>
+                        {p.career || '—'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* ขวา: ผ่าน/ไม่ผ่าน (quality) หรือ คะแนน (ai-suggest) */}
+                  {showSummaryTable && p.status === 'done' && (
+                    <div style={{ flex: '0 0 auto' }}>
+                      {mode === 'quality' ? (
+                        <span style={{
+                          fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 99,
+                          background: p.passed ? '#DCFCE7' : '#FEF2F2',
+                          color: p.passed ? '#16A34A' : '#DC2626'
+                        }}>
+                          {p.passed ? 'ผ่าน' : 'ไม่ผ่าน'}
+                        </span>
+                      ) : (
+                        <span style={{
+                          fontSize: 13, fontWeight: 700, padding: '4px 12px', borderRadius: 99,
+                          background: 'var(--primary-light)', color: 'var(--primary)'
+                        }}>
+                          {p.score ?? '-'}<span style={{ fontSize: 10, fontWeight: 500 }}> /100</span>
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ปุ่ม retry / ลบ */}
                   {!uploading && p.status === 'error' && (
-                    <button type="button" onClick={() => retryOne(index)} style={{ fontSize: 12, fontWeight: 600, color: 'var(--primary)', background: 'var(--primary-light)', border: 'none', borderRadius: 6, padding: '5px 12px', cursor: 'pointer' }}>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); retryOne(index) }} style={{ flex: '0 0 auto', fontSize: 12, fontWeight: 600, color: 'var(--primary)', background: 'var(--primary-light)', border: 'none', borderRadius: 6, padding: '5px 12px', cursor: 'pointer' }}>
                       🔄 ลองใหม่
                     </button>
                   )}
-                  {!uploading && p.status !== 'error' && (
-                    <button type="button" onClick={() => removeFile(index)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-light)', fontSize: 18, padding: 4 }}>×</button>
+                  {!uploading && p.status !== 'error' && p.status !== 'done' && (
+                    <button type="button" onClick={(e) => { e.stopPropagation(); removeFile(index) }} style={{ flex: '0 0 auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-light)', fontSize: 18, padding: 4 }}>×</button>
                   )}
                 </div>
+
                 {/* error message ภาษาคน */}
                 {p.status === 'error' && p.message && (
                   <p style={{ fontSize: 12, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8, marginTop: 8, lineHeight: 1.5 }}>
@@ -232,75 +291,19 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
         </div>
       )}
 
+      {/* คลิกแถวเพื่อดูรายละเอียด (quality/ai-suggest) */}
+      {showSummaryTable && finished && doneCount > 0 && (
+        <p style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 8 }}>
+          💡 คลิกที่แถวเพื่อดูรายละเอียดคะแนนของแต่ละคน
+        </p>
+      )}
+
       {error && <p style={{ fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '10px 14px', borderRadius: 10, marginTop: 12 }}>{error}</p>}
 
       {files.length > 0 && !finished && (
         <button type="button" onClick={uploadAll} disabled={uploading} className="btn-primary" style={{ width: '100%', padding: '14px', fontSize: 15, marginTop: 16 }}>
           {uploading ? t('batch.processing') : `${t('batch.submit')} ${files.length}`}
         </button>
-      )}
-
-      {/* ตารางสรุป — เฉพาะ quality / ai-suggest mode หลังวิเคราะห์เสร็จ */}
-      {showSummaryTable && finished && doneCount > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-dark)' }}>
-              ผลการวิเคราะห์ ({doneCount} คน)
-            </h3>
-            {mode === 'quality' && (
-              <span style={{ fontSize: 13, color: 'var(--text-gray)' }}>
-                ผ่าน <strong style={{ color: '#16A34A' }}>{passedCount}</strong> / {doneCount}
-              </span>
-            )}
-          </div>
-          <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-            {/* หัวตาราง */}
-            <div style={{ display: 'flex', background: 'var(--input-bg)', borderBottom: '1px solid var(--border)', fontSize: 12, fontWeight: 700, color: 'var(--text-gray)' }}>
-              <div style={{ flex: '0 0 38%', padding: '10px 14px' }}>ชื่อเจ้าของเรซูเม่</div>
-              <div style={{ flex: 1, padding: '10px 14px' }}>{mode === 'quality' ? 'อาชีพที่แนะนำ' : 'ตำแหน่งที่ AI เลือก'}</div>
-              {mode === 'quality' && <div style={{ flex: '0 0 90px', padding: '10px 14px', textAlign: 'center' }}>ผล</div>}
-            </div>
-            {/* แถวข้อมูล */}
-            {files.map((file, index) => {
-              const fileKey = `${index}-${file.name}`
-              const p = progress[fileKey] || {}
-              if (p.status !== 'done') return null
-              return (
-                <div
-                  key={fileKey}
-                  onClick={() => p.analysisId && onComplete && onComplete([p.analysisId])}
-                  style={{
-                    display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border)',
-                    fontSize: 13, cursor: p.analysisId ? 'pointer' : 'default', background: '#fff'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'var(--input-bg)'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-                >
-                  <div style={{ flex: '0 0 38%', padding: '12px 14px', fontWeight: 600, color: 'var(--text-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {p.name || file.name}
-                  </div>
-                  <div style={{ flex: 1, padding: '12px 14px', color: 'var(--text-gray)', lineHeight: 1.5 }}>
-                    {p.career || '—'}
-                  </div>
-                  {mode === 'quality' && (
-                    <div style={{ flex: '0 0 90px', padding: '12px 14px', textAlign: 'center' }}>
-                      <span style={{
-                        fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 99,
-                        background: p.passed ? '#DCFCE7' : '#FEF2F2',
-                        color: p.passed ? '#16A34A' : '#DC2626'
-                      }}>
-                        {p.passed ? 'ผ่าน' : 'ไม่ผ่าน'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-          <p style={{ fontSize: 11, color: 'var(--text-light)', marginTop: 8 }}>
-            💡 คลิกที่แถวเพื่อดูรายละเอียดคะแนนของแต่ละคน
-          </p>
-        </div>
       )}
     </div>
   )
