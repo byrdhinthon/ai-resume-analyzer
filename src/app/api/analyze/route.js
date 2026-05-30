@@ -224,7 +224,9 @@ SCORING CATEGORIES (เกณฑ์ของแต่ละหมวดอยู
 ${criteriaText}`
 
     const scoresSchema = (criteriaData || []).map(c => `"${c.category}": <number 0-${c.max_score}>`).join(',\n    ')
-    const suggestionsSchema = (criteriaData || []).map(c => `"${c.category}": "<คำแนะนำภาษาไทยสำหรับหมวดนี้ — ทำตาม tone ที่ระบุใน description ของหมวด>"`).join(',\n    ')
+    // suggestion แต่ละหมวดเขียนเป็น 3 ส่วน ขึ้นบรรทัดด้วย \n เพื่อให้อ่านง่าย:
+    //   จุดแข็ง: (ชมก่อน) / ควรเพิ่ม: (bullet •) / ตัวอย่าง: (ก่อน → หลัง)
+    const suggestionsSchema = (criteriaData || []).map(c => `"${c.category}": "จุดแข็ง: <ชมจุดดีของหมวดนี้สั้นๆ 1 ประโยค>\\nควรเพิ่ม:\\n• <สิ่งที่ควรปรับ ข้อที่ 1>\\n• <ข้อที่ 2 (ถ้ามี)>\\nตัวอย่าง: <ยกตัวอย่างก่อน → หลัง 1 อัน เช่น 'ทำ dashboard' → 'สร้าง sales dashboard ลดเวลา report 50%'>"`).join(',\n    ')
 
     let prompt
     if (evalMode === 'ai-suggest' || evalMode === 'quality') {
