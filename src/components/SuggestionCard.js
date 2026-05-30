@@ -72,7 +72,7 @@ export default function SuggestionCard({ label, suggestion, score, maxScore }) {
             <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--primary)', marginBottom: 6 }}>
               {t('result.suggestion')}
             </p>
-            <p style={{ fontSize: 14, color: 'var(--text-dark)', lineHeight: 1.6 }}>{suggestion}</p>
+            <p style={{ fontSize: 14, color: 'var(--text-dark)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{suggestion}</p>
           </div>
         </div>
       )}
