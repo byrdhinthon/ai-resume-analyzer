@@ -36,16 +36,30 @@ export default function Navbar({ profile }) {
           <span style={{ fontSize: 14, color: 'var(--text-gray)' }} className="hidden sm:inline">
             {profile?.username}
           </span>
-          <span style={{
-            background: 'var(--primary-light)',
-            color: 'var(--primary)',
-            borderRadius: 'var(--radius-pill)',
-            padding: '4px 12px',
-            fontSize: 12,
-            fontWeight: 600
-          }}>
-            {profile?.role}
-          </span>
+          {(() => {
+            // สีตาม role: member=เขียว / professor=เหลือง / admin=แดง + จุดสีนำหน้า + ตัวหนา
+            const roleStyle = {
+              member: { bg: '#DCFCE7', color: '#15803D', dot: '#16A34A' },
+              professor: { bg: '#FEF9C3', color: '#A16207', dot: '#CA8A04' },
+              admin: { bg: '#FEE2E2', color: '#B91C1C', dot: '#DC2626' },
+            }[profile?.role] || { bg: 'var(--primary-light)', color: 'var(--primary)', dot: 'var(--primary)' }
+            return (
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: roleStyle.bg,
+                color: roleStyle.color,
+                borderRadius: 'var(--radius-pill)',
+                padding: '5px 14px',
+                fontSize: 13,
+                fontWeight: 700
+              }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: roleStyle.dot, flexShrink: 0 }} />
+                {profile?.role}
+              </span>
+            )
+          })()}
           <button onClick={handleLogout} className="btn-primary" style={{ padding: '7px 18px', fontSize: 13 }}>
             {t('nav.logout')}
           </button>
