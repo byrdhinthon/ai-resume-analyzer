@@ -25,15 +25,31 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
   const { user } = useProfile()
 
   // โหมดที่แสดงตารางสรุป (มีอาชีพแนะนำ) = quality + ai-suggest
-  const showSummaryTable = mode === 'quality' || mode === 'ai-suggest'
+  // quality = batch (หลายไฟล์) + แสดงผลในแถว + ผ่าน/ไม่ผ่าน
+  // per-position / ai-suggest = ไฟล์เดียว → เด้งไปหน้าผลรายคน
+  const isBatch = mode === 'quality'
+  const showSummaryTable = isBatch
+  const effectiveMaxFiles = isBatch ? MAX_FILES : 1
 
   function addFiles(e) {
     const newFiles = Array.from(e.target.files)
     setError('')
     setFinished(false) // เพิ่มไฟล์ใหม่ = เริ่มรอบใหม่ → โชว์ปุ่มวิเคราะห์อีกครั้ง
+
+    // โหมดไฟล์เดียว (per-position / ai-suggest) — รับแค่ไฟล์เดียว replace ของเดิม
+    if (!isBatch) {
+      const f = newFiles[0]
+      if (!f) return
+      if (!ALLOWED_TYPES.includes(f.type)) { setError(t('analyze.fileTypeError')); e.target.value = ''; return }
+      if (f.size > MAX_FILE_SIZE) { setError(t('analyze.fileSizeError')); e.target.value = ''; return }
+      setFiles([f]); setProgress({}); e.target.value = ''
+      return
+    }
+
+    // โหมด batch (quality) — รับหลายไฟล์
     const validFiles = []
     for (const f of newFiles) {
-      if (files.length + validFiles.length >= MAX_FILES) {
+      if (files.length + validFiles.length >= effectiveMaxFiles) {
         setError(t('batch.maxFiles')); break
       }
       if (!ALLOWED_TYPES.includes(f.type)) {
@@ -182,7 +198,7 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
 
   return (
     <div>
-      <input type="file" accept=".pdf,.docx,.png,.jpg,.jpeg,.webp" multiple onChange={addFiles} style={{ display: 'none' }} id="batch-file-upload" disabled={uploading} />
+      <input type="file" accept=".pdf,.docx,.png,.jpg,.jpeg,.webp" multiple={isBatch} onChange={addFiles} style={{ display: 'none' }} id="batch-file-upload" disabled={uploading} />
       <label htmlFor="batch-file-upload" style={{ cursor: uploading ? 'not-allowed' : 'pointer', display: 'block' }}>
         <div style={{
           border: '2px dashed var(--border)', borderRadius: 'var(--radius-md)',
@@ -193,8 +209,12 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="var(--text-gray)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <p style={{ fontSize: 14, color: 'var(--text-gray)', marginBottom: 4 }}>{t('batch.clickToSelect')}</p>
-          <p style={{ fontSize: 12, color: 'var(--text-light)' }}>PDF, DOCX, PNG, JPG · {t('batch.maxInfo') || `สูงสุด ${MAX_FILES} ไฟล์ · ไฟล์ละไม่เกิน 5MB`}</p>
+          <p style={{ fontSize: 14, color: 'var(--text-gray)', marginBottom: 4 }}>
+            {isBatch ? t('batch.clickToSelect') : 'คลิกเพื่อเลือกไฟล์ (1 ไฟล์)'}
+          </p>
+          <p style={{ fontSize: 12, color: 'var(--text-light)' }}>
+            PDF, DOCX, PNG, JPG · {isBatch ? `สูงสุด ${MAX_FILES} ไฟล์ · ไฟล์ละไม่เกิน 5MB` : 'ไฟล์ละไม่เกิน 5MB'}
+          </p>
         </div>
       </label>
 

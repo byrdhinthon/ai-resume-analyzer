@@ -227,74 +227,14 @@ ${criteriaText}`
     const suggestionsSchema = (criteriaData || []).map(c => `"${c.category}": "<คำแนะนำภาษาไทยสำหรับหมวดนี้ — ทำตาม tone ที่ระบุใน description ของหมวด>"`).join(',\n    ')
 
     let prompt
-    if (evalMode === 'quality') {
-      // Quality Review Mode — สำหรับอาจารย์ตรวจ batch โดยไม่สนตำแหน่งงาน
-      // ประเมินคุณภาพการเขียนเรซูเม่ + ความครบถ้วน + professional ของเนื้อหา
-      prompt = `You are a SUPPORTIVE resume craft reviewer for Thai university students. Your job is to evaluate RESUME WRITING QUALITY — NOT match to any specific job position.
-
-═══════════════════════════════════════════
-QUALITY REVIEW MODE
-═══════════════════════════════════════════
-อาจารย์อัปโหลด batch เรซูเม่นักศึกษาเพื่อตรวจว่า "เขียนเรซูเม่เป็นมั้ย" โดยไม่สนสายงาน
-- **ไม่ต้องเทียบกับตำแหน่งใดๆ** — ไม่มี Required Skills, ไม่มี Position Expected Skills
-- ประเมินคุณภาพ **การนำเสนอตัวเอง** ของผู้สมัคร: ครบถ้วน อ่านง่าย professional มี evidence ประกอบ
-- Pass threshold: ${threshold}/100 — ถ้าคะแนนรวม ≥ ${threshold} → ผ่าน
-
-═══════════════════════════════════════════
-SKILL ASSESSMENT (Quality-only — ไม่เทียบตำแหน่ง)
-═══════════════════════════════════════════
-สำหรับหมวด "ทักษะ" ใน quality mode:
-- ✅ ดูว่า candidate **list ทักษะชัดเจน** (จัดหมวด categorize / ไม่ปนเปกัน)
-- ✅ ดูว่ามี **evidence** ประกอบทักษะ (project / course / experience) หรือเป็นแค่ keyword stuffing
-- ✅ ดู professional ของ skill naming (ระบุเฉพาะเจาะจง vs กว้างเกินไป "เก่ง computer")
-- ❌ ห้ามตัดสินว่า skill "ตรงสาย / ไม่ตรงสาย" — ทุกสาขาเขียนเรซูเม่ดีได้
-
-═══════════════════════════════════════════
-CAREER RECOMMENDATION (สำคัญ)
-═══════════════════════════════════════════
-นอกจากตรวจคุณภาพ — ให้ดูทักษะ/ประสบการณ์/การศึกษาในเรซูเม่ แล้วแนะนำ **ตำแหน่งงาน/อาชีพสาย IT ที่เหมาะกับ candidate คนนี้มากที่สุด 1-2 ตำแหน่ง**
-- เลือกจากหลักฐานจริงในเรซูเม่ (เช่น มี React/HTML/CSS → Frontend Developer)
-- ระบุเป็นชื่อตำแหน่งที่ใช้ในตลาดงานจริง (Backend Developer, Data Analyst, Mobile App Developer, ฯลฯ)
-- ถ้าทักษะกระจายหลายสาย เลือกสายที่หลักฐานหนักแน่นสุด
-
-═══════════════════════════════════════════
-GLOBAL SCORING CONTEXT
-═══════════════════════════════════════════
-ผู้สมัครเป็นนักศึกษา/เด็กจบใหม่ — ประเมินมาตรฐาน entry-level
-- ให้คะแนนแต่ละหมวดตามหลักฐานของหมวดนั้นเท่านั้น — ห้ามชดเชยหมวดอื่น
-- เกณฑ์ละเอียดของแต่ละหมวดอยู่ใน description ด้านล่าง — ใช้ description เป็นหลัก
-- Tone ของ suggestion: ให้กำลังใจ + แนะนำขั้นต่อไป
-
-${resumeBlock}
-
-═══════════════════════════════════════════
-OUTPUT FORMAT
-═══════════════════════════════════════════
-Respond ONLY with valid JSON:
-
-{
-  "skills_analysis": {
-    "skills_found_in_resume": ["ทักษะทั้งหมดที่พบในเรซูเม่ (ไม่กรองตามตำแหน่ง)"],
-    "skills_with_evidence": ["ทักษะที่มี project / course / experience ประกอบ"],
-    "skills_without_evidence": ["ทักษะที่ระบุชื่อเฉยๆ ไม่มีหลักฐาน"],
-    "evidence_quality": "<none|mentioned_only|with_examples|with_projects>",
-    "writing_clarity_notes": "<สังเกตเรื่องการเขียน — มี typo / โครงสร้างชัดมั้ย / ใช้ active verb มั้ย>"
-  },
-  "recommended_careers": ["ตำแหน่ง/อาชีพ IT ที่เหมาะกับ candidate 1-2 ตำแหน่ง (ชื่อตำแหน่งจริงในตลาดงาน)"],
-  "recommended_career_reason": "<เหตุผลสั้นๆ ภาษาไทย ว่าทำไมแนะนำตำแหน่งนี้ อิงจากทักษะ/ผลงานในเรซูเม่>",
-  "scores": {
-    ${scoresSchema}
-  },
-  "suggestions": {
-    ${suggestionsSchema}
-  },
-  "summary": "<สรุปภาษาไทย 2-3 ประโยค เน้นจุดแข็งของการเขียนเรซูเม่ + ส่วนที่ควรปรับ>",
-  "candidate_name": "<ชื่อ-นามสกุล หรือ null>"
-}`
-    } else if (evalMode === 'ai-suggest') {
-      // AI Suggest Mode — AI เลือกตำแหน่งที่เหมาะกับ candidate เอง แล้วให้คะแนนตามตำแหน่งนั้น
+    if (evalMode === 'ai-suggest' || evalMode === 'quality') {
+      // AI เลือกตำแหน่งที่เหมาะกับ candidate เอง แล้วให้คะแนนตามตำแหน่งนั้น
+      //  ai-suggest = ไฟล์เดียว, ดูคะแนน
+      //  quality    = batch (ตรวจทั้งห้อง), เพิ่มเกณฑ์ผ่าน/ไม่ผ่าน (threshold)
       prompt = `You are a SUPPORTIVE IT career advisor for Thai university students. ขั้นแรกให้เลือกตำแหน่งที่เหมาะกับ candidate จากเรซูเม่ แล้วประเมินคะแนนตามตำแหน่งนั้น — ระดับ intern / entry-level
-
+${evalMode === 'quality' ? `
+**โหมดตรวจกลุ่ม (Quality Review):** Pass threshold ${threshold}/100 — ถ้าคะแนนรวม ≥ ${threshold} → ผ่าน
+` : ''}
 ═══════════════════════════════════════════
 STEP A: เลือกตำแหน่งที่เหมาะที่สุด
 ═══════════════════════════════════════════
@@ -485,24 +425,17 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
 
     const totalScore = Object.values(result.scores).reduce((a, b) => a + b, 0)
 
-    // อาชีพที่แนะนำ:
-    //  quality mode    → จาก recommended_careers (list ที่ AI แนะนำ)
-    //  ai-suggest mode → จาก ai_chosen_position (ตำแหน่งที่ AI เลือกให้คะแนน)
+    // อาชีพ/ตำแหน่งที่ AI เลือก — ใช้ทั้ง quality + ai-suggest (logic เดียวกัน: AI เลือกตำแหน่ง)
     let recommendedCareer = null
-    if (evalMode === 'quality' && Array.isArray(result.recommended_careers) && result.recommended_careers.length > 0) {
-      recommendedCareer = result.recommended_careers.join(', ')
-      if (result.recommended_career_reason) {
-        recommendedCareer += ` — ${result.recommended_career_reason}`
-      }
-    } else if (evalMode === 'ai-suggest' && result.ai_chosen_position) {
+    if ((evalMode === 'quality' || evalMode === 'ai-suggest') && result.ai_chosen_position) {
       recommendedCareer = result.ai_chosen_position
       if (result.ai_chosen_reason) {
         recommendedCareer += ` — ${result.ai_chosen_reason}`
       }
     }
 
-    // ai-suggest: ใช้ตำแหน่งที่ AI เลือกเป็น job_position (เดิมส่ง 'AI Suggested' มา)
-    const finalJobPosition = (evalMode === 'ai-suggest' && result.ai_chosen_position)
+    // quality + ai-suggest: ใช้ตำแหน่งที่ AI เลือกเป็น job_position (เดิมส่ง placeholder มา)
+    const finalJobPosition = ((evalMode === 'ai-suggest' || evalMode === 'quality') && result.ai_chosen_position)
       ? result.ai_chosen_position
       : undefined // undefined = ไม่ override ของเดิม
 
