@@ -240,9 +240,12 @@ ${evalMode === 'quality' ? `
 ═══════════════════════════════════════════
 STEP A: เลือกตำแหน่งที่เหมาะที่สุด
 ═══════════════════════════════════════════
-อ่านเรซูเม่ → เลือกตำแหน่งงาน IT **1 ตำแหน่ง** ที่ candidate เหมาะที่สุด (อิงทักษะ/ผลงาน/การศึกษาจริง)
-- ใช้ชื่อตำแหน่งจริงในตลาดงานไทย (Backend Developer, Frontend Developer, Data Analyst, Mobile App Developer, Software Tester, System Administrator, ฯลฯ)
-- เลือกสายที่หลักฐานหนักแน่นสุด
+อ่านเรซูเม่ → เลือกตำแหน่งงานสายเทคโนโลยี/ดิจิทัล **1 ตำแหน่ง** ที่ candidate เหมาะที่สุด (อิงทักษะ/ผลงาน/การศึกษาจริง)
+- ใช้ชื่อตำแหน่งจริงในตลาดงานไทย ครอบคลุมทั้ง:
+  • สาย Dev/Coding: Backend Developer, Frontend Developer, Full Stack Developer, Mobile App Developer, Data Analyst, Software Tester, System Administrator
+  • สาย Design: UI/UX Designer, Graphic Designer, Web Designer, Product Designer
+- เลือกสายที่หลักฐานหนักแน่นสุด — **สำคัญ:** ถ้าทักษะเป็น design ล้วน (Figma, Photoshop, Illustrator, ออกแบบ UI/โลโก้/โปสเตอร์) ให้เลือกสาย Design (เช่น UI/UX Designer) อย่าฝืนจับเป็น Frontend Developer เพียงเพราะเกี่ยวกับเว็บ/UI
+- Frontend Developer = ต้องมีหลักฐาน coding (HTML/CSS/JS/React) ไม่ใช่แค่ออกแบบด้วย Figma
 
 ═══════════════════════════════════════════
 STEP B: ประเมินตามตำแหน่งที่เลือก (Step A)
