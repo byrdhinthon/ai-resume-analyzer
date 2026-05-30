@@ -218,9 +218,12 @@ export default function ProfessorAnalyzePage() {
             jobPosition={analyzeMode === 'per-position' ? jobPosition : analyzeMode === 'quality' ? 'Quality Review' : 'AI Suggested'}
             mode={analyzeMode}
             passThreshold={passThreshold}
-            onComplete={(ids) => {
-              // ไปหน้าผลลัพธ์ไฟล์แรก (per-position) หรือไฟล์ที่คลิกในตาราง (quality/ai-suggest)
-              router.push(`${basePath}/analyze/${ids[0]}`)
+            onComplete={(ids, opts) => {
+              const url = `${basePath}/analyze/${ids[0]}`
+              // คลิกแถวใน batch (newTab) → เปิด tab ใหม่ (หน้า batch ไม่หาย)
+              // single file วิเคราะห์เสร็จ → ไปหน้าผลปกติ
+              if (opts?.newTab) window.open(url, '_blank')
+              else router.push(url)
             }}
           />
         </div>

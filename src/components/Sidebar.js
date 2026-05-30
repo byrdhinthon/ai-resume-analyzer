@@ -65,6 +65,7 @@ export default function Sidebar({ role, requiredRole }) {
 
   const professorLinks = [
     { href: '/professor', label: t('sidebar.home'), icon: icons.home },
+    { href: '/professor/criteria', label: t('sidebar.criteria'), icon: icons.criteria },
     { href: '/professor/analyze', label: t('sidebar.analyze'), icon: icons.upload },
     { href: '/professor/analyses', label: t('sidebar.history'), icon: icons.history },
   ]

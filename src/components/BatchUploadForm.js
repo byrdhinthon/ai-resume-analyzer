@@ -236,55 +236,51 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
             return (
               <div
                 key={fileKey}
-                onClick={() => clickable && onComplete && onComplete([p.analysisId])}
+                onClick={() => clickable && onComplete && onComplete([p.analysisId], { newTab: true })}
                 style={{
                   padding: '12px 14px', background: 'var(--surface)', borderRadius: 'var(--radius-sm)',
                   border: '1px solid ' + (p.status === 'error' ? '#FCA5A5' : p.status === 'done' && showSummaryTable ? '#86EFAC' : 'var(--border)'),
                   cursor: clickable ? 'pointer' : 'default'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <span style={{ fontSize: 16, marginTop: 2 }}>{getStatusIcon(p.status)}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 16 }}>{getStatusIcon(p.status)}</span>
 
                   {/* ซ้าย: ชื่อไฟล์ / เจ้าของ / สถานะ */}
-                  <div style={{ flex: '0 0 30%', minWidth: 0 }}>
+                  <div style={{ flex: '0 0 26%', minWidth: 0 }}>
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.status === 'done' && p.name ? p.name : file.name}
                     </p>
                     <p style={{ fontSize: 11, color: 'var(--text-light)' }}>{(file.size / 1024 / 1024).toFixed(2)} MB{p.status && ` · ${getStatusText(p.status)}`}</p>
                   </div>
 
-                  {/* กลาง: ผลลัพธ์ (อาชีพแนะนำ / ตำแหน่งที่ AI เลือก) — ขึ้นทันทีที่เสร็จ */}
+                  {/* คะแนน N/100 (วงแดง) */}
+                  {showSummaryTable && p.status === 'done' && (
+                    <div style={{ flex: '0 0 auto', textAlign: 'center', minWidth: 56 }}>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-dark)' }}>{p.score ?? '-'}</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-light)' }}>/100</span>
+                    </div>
+                  )}
+
+                  {/* กลาง: ตำแหน่ง (ตัวหนา ตัดเหตุผล — กดเข้าไปดูรายละเอียด) */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {showSummaryTable && p.status === 'done' && (
-                      <p style={{ fontSize: 12.5, color: 'var(--text-gray)', lineHeight: 1.5 }}>
-                        <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
-                          {mode === 'quality' ? 'อาชีพที่แนะนำ: ' : 'ตำแหน่งที่ AI เลือก: '}
-                        </span>
-                        {p.career || '—'}
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {(p.career || '—').split('—')[0].trim()}
                       </p>
                     )}
                   </div>
 
-                  {/* ขวา: ผ่าน/ไม่ผ่าน (quality) หรือ คะแนน (ai-suggest) */}
-                  {showSummaryTable && p.status === 'done' && (
+                  {/* ขวา: ผ่าน/ไม่ผ่าน (เฉพาะ quality) */}
+                  {showSummaryTable && p.status === 'done' && mode === 'quality' && (
                     <div style={{ flex: '0 0 auto' }}>
-                      {mode === 'quality' ? (
-                        <span style={{
-                          fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 99,
-                          background: p.passed ? '#DCFCE7' : '#FEF2F2',
-                          color: p.passed ? '#16A34A' : '#DC2626'
-                        }}>
-                          {p.passed ? 'ผ่าน' : 'ไม่ผ่าน'}
-                        </span>
-                      ) : (
-                        <span style={{
-                          fontSize: 13, fontWeight: 700, padding: '4px 12px', borderRadius: 99,
-                          background: 'var(--primary-light)', color: 'var(--primary)'
-                        }}>
-                          {p.score ?? '-'}<span style={{ fontSize: 10, fontWeight: 500 }}> /100</span>
-                        </span>
-                      )}
+                      <span style={{
+                        fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 99,
+                        background: p.passed ? '#DCFCE7' : '#FEF2F2',
+                        color: p.passed ? '#16A34A' : '#DC2626'
+                      }}>
+                        {p.passed ? 'ผ่าน' : 'ไม่ผ่าน'}
+                      </span>
                     </div>
                   )}
 

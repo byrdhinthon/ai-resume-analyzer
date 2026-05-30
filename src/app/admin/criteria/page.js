@@ -1,11 +1,15 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import AuthLayout from '@/components/AuthLayout'
 import { useLanguage } from '@/lib/LanguageContext'
 
 export default function AdminCriteriaPage() {
   const { t } = useLanguage()
+  const pathname = usePathname()
+  // ใช้ได้ทั้ง admin (/admin/criteria) และ professor (/professor/criteria)
+  const requiredRole = pathname.startsWith('/professor') ? 'professor' : 'admin'
   const [criteria, setCriteria] = useState([])
   const [loading, setLoading] = useState(true)
   const [editId, setEditId] = useState(null)
@@ -82,7 +86,7 @@ export default function AdminCriteriaPage() {
   const totalMaxScore = criteria.reduce((sum, c) => sum + c.max_score, 0)
 
   return (
-    <AuthLayout requiredRole="admin">
+    <AuthLayout requiredRole={requiredRole}>
       <div>
         <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-dark)', marginBottom: 6 }}>
           {t('admin.criteria.title')}
