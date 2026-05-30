@@ -70,7 +70,9 @@ export default function AnalysisResultPage({ params }) {
         analysisId: data.id,
         fileUrl: data.file_url,
         fileName: data.file_name,
-        jobPosition: data.job_position
+        jobPosition: data.job_position,
+        // ถ้า job_position = 'AI Suggested' → ให้ AI เลือกตำแหน่งเอง (mode ai-suggest)
+        mode: data.job_position === 'AI Suggested' ? 'ai-suggest' : 'per-position'
       })
     })
 

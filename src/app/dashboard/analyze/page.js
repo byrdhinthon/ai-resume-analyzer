@@ -13,7 +13,8 @@ export default function AnalyzePage() {
   const [jobPositions, setJobPositions] = useState([])
   const [selectedPosition, setSelectedPosition] = useState('')
   const [customPosition, setCustomPosition] = useState('')
-  const [useCustom, setUseCustom] = useState(false)
+  // positionMode: 'list' (เลือกจากรายการ) | 'custom' (กรอกเอง) | 'ai' (ให้ AI แนะนำ)
+  const [positionMode, setPositionMode] = useState('list')
   const [file, setFile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -61,8 +62,12 @@ export default function AnalyzePage() {
     e.preventDefault()
     setError('')
 
-    const jobPosition = useCustom ? customPosition.trim() : selectedPosition
-    if (!jobPosition) { setError(t('analyze.selectPositionError')); return }
+    // โหมด ai = ให้ AI เลือกตำแหน่งเอง → เก็บ placeholder 'AI Suggested'
+    // (หน้าผลจะอ่าน job_position นี้แล้วส่ง mode='ai-suggest' ให้ API)
+    const jobPosition = positionMode === 'ai'
+      ? 'AI Suggested'
+      : (positionMode === 'custom' ? customPosition.trim() : selectedPosition)
+    if (positionMode !== 'ai' && !jobPosition) { setError(t('analyze.selectPositionError')); return }
     if (!file) { setError(t('analyze.selectFileError')); return }
 
     setLoading(true)
@@ -114,16 +119,17 @@ export default function AnalyzePage() {
                 {t('analyze.selectPosition')}
               </label>
 
-              {/* Toggle pills */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+              {/* Toggle pills — เลือกจากรายการ / กรอกเอง / ให้ AI แนะนำ */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                 {[
-                  { label: t('analyze.fromList'), value: false },
-                  { label: t('analyze.custom'), value: true }
+                  { label: t('analyze.fromList'), value: 'list' },
+                  { label: t('analyze.custom'), value: 'custom' },
+                  { label: 'ให้ AI แนะนำ', value: 'ai' }
                 ].map(opt => (
                   <button
-                    key={String(opt.value)}
+                    key={opt.value}
                     type="button"
-                    onClick={() => setUseCustom(opt.value)}
+                    onClick={() => setPositionMode(opt.value)}
                     style={{
                       padding: '8px 18px',
                       borderRadius: 'var(--radius-pill)',
@@ -132,9 +138,9 @@ export default function AnalyzePage() {
                       fontWeight: 500,
                       cursor: 'pointer',
                       transition: 'all 0.15s',
-                      borderColor: useCustom === opt.value ? 'var(--primary)' : 'var(--border)',
-                      background: useCustom === opt.value ? 'var(--primary-light)' : 'transparent',
-                      color: useCustom === opt.value ? 'var(--primary)' : 'var(--text-gray)',
+                      borderColor: positionMode === opt.value ? 'var(--primary)' : 'var(--border)',
+                      background: positionMode === opt.value ? 'var(--primary-light)' : 'transparent',
+                      color: positionMode === opt.value ? 'var(--primary)' : 'var(--text-gray)',
                     }}
                   >
                     {opt.label}
@@ -142,7 +148,7 @@ export default function AnalyzePage() {
                 ))}
               </div>
 
-              {!useCustom ? (
+              {positionMode === 'list' && (
                 <div className="input-wrap" style={{ cursor: 'pointer' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, color: 'var(--text-light)' }}>
                     <rect x="2" y="7" width="20" height="14" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
@@ -173,7 +179,9 @@ export default function AnalyzePage() {
                     <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-              ) : (
+              )}
+
+              {positionMode === 'custom' && (
                 <div className="input-wrap">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, color: 'var(--text-light)' }}>
                     <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" stroke="currentColor" strokeWidth="2"/>
@@ -185,6 +193,17 @@ export default function AnalyzePage() {
                     onChange={e => setCustomPosition(e.target.value)}
                     placeholder={t('analyze.customPlaceholder')}
                   />
+                </div>
+              )}
+
+              {positionMode === 'ai' && (
+                <div style={{
+                  padding: '14px 18px', borderRadius: 'var(--radius-md)',
+                  background: 'var(--primary-light)', border: '1.5px solid var(--primary)'
+                }}>
+                  <p style={{ fontSize: 13, color: 'var(--primary)', lineHeight: 1.5 }}>
+                    AI จะอ่านเรซูเม่ของคุณแล้วเลือกตำแหน่งที่เหมาะที่สุดให้เอง — แล้วให้คะแนนตามตำแหน่งนั้น
+                  </p>
                 </div>
               )}
             </div>
