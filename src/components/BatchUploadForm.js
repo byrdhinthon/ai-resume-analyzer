@@ -262,13 +262,25 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
                     </div>
                   )}
 
-                  {/* กลาง: ตำแหน่ง (ตัวหนา ตัดเหตุผล — กดเข้าไปดูรายละเอียด) */}
+                  {/* กลาง: ตำแหน่ง (ตัวหนา) + เหตุผลย่อ 1 บรรทัด (กดเข้าไปดูเต็ม) */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    {showSummaryTable && p.status === 'done' && (
-                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {(p.career || '—').split('—')[0].trim()}
-                      </p>
-                    )}
+                    {showSummaryTable && p.status === 'done' && (() => {
+                      const parts = (p.career || '').split('—')
+                      const title = parts[0].trim()
+                      const reason = parts.slice(1).join('—').trim()
+                      return (
+                        <>
+                          <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {title || '—'}
+                          </p>
+                          {reason && (
+                            <p style={{ fontSize: 11.5, color: 'var(--text-light)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>
+                              {reason}
+                            </p>
+                          )}
+                        </>
+                      )
+                    })()}
                   </div>
 
                   {/* ขวา: ผ่าน/ไม่ผ่าน (เฉพาะ quality) */}
