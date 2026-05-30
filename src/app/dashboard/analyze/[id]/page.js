@@ -76,8 +76,10 @@ export default function AnalysisResultPage({ params }) {
 
     const result = await response.json()
     if (!response.ok) {
+      // ใช้ message ภาษาคนจาก backend ก่อน (เช่น "อ่านข้อความในไฟล์ไม่ได้...")
+      // fallback เป็น i18n ของ error code แล้วค่อย generic
       const errKey = `error.${result.error}`
-      setError(t(errKey) !== errKey ? t(errKey) : (result.error || t('analyze.failed')))
+      setError(result.message || (t(errKey) !== errKey ? t(errKey) : (result.error || t('analyze.failed'))))
       setAnalyzing(false)
       return
     }

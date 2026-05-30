@@ -30,6 +30,7 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
   function addFiles(e) {
     const newFiles = Array.from(e.target.files)
     setError('')
+    setFinished(false) // เพิ่มไฟล์ใหม่ = เริ่มรอบใหม่ → โชว์ปุ่มวิเคราะห์อีกครั้ง
     const validFiles = []
     for (const f of newFiles) {
       if (files.length + validFiles.length >= MAX_FILES) {
@@ -50,6 +51,7 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
 
   function removeFile(index) {
     setFiles(prev => prev.filter((_, i) => i !== index))
+    setFinished(false)
   }
 
   function setP(fileKey, patch) {
@@ -137,6 +139,13 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
 
     const analysisIds = []
     for (let i = 0; i < files.length; i++) {
+      const fileKey = `${i}-${files[i].name}`
+      // ข้ามไฟล์ที่วิเคราะห์เสร็จแล้ว (กดเพิ่มไฟล์ใหม่หลังรอบก่อน) — กัน analyze ซ้ำ + เปลือง AI
+      const prev = progress[fileKey]
+      if (prev?.status === 'done') {
+        if (prev.analysisId) analysisIds.push(prev.analysisId)
+        continue
+      }
       const id = await analyzeOne(files[i], i, batchId, session)
       if (id) analysisIds.push(id)
     }
