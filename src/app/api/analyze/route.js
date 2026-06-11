@@ -248,7 +248,9 @@ ${criteriaText}`
 1. หมวดไหน sections_present=false → scores หมวดนั้น = 0 เด็ดขาด
 2. ห้ามอนุมาน/ชดเชยจากหมวดอื่น จากชื่อ-รูป-ตำแหน่งใต้ชื่อ หรือความรู้ทั่วไป — นับเฉพาะที่เขียนเป็นหัวข้อจริง
 3. ทำตามเงื่อนไข "ขั้น 1 ต้องมีหัวข้อก่อน" ใน description ของแต่ละหมวดเป๊ะ
-4. คะแนน=เข้มงวดตามเอกสาร / suggestion=ยังให้กำลังใจได้`
+4. คะแนน=เข้มงวดตามเอกสาร / suggestion=ยังให้กำลังใจได้
+
+📌 การให้คะแนนหมวด "ทักษะ" (เมื่อผ่าน presence = มีหัวข้อ Skills แล้ว): ให้นับเทคโนโลยีที่มีหลักฐานใช้จริงใน Projects เป็นทักษะที่ candidate "มี" ด้วย แม้ไม่อยู่ในหัวข้อ Skills (เช่น React/Node.js ที่ใช้ใน HoraWhisper = นับเป็นทักษะ) — ทำแบบนี้ทุกครั้งให้สม่ำเสมอ ห้ามบางทีนับบางทีไม่นับ (กันคะแนนทักษะเหวี่ยง)`
 
     let prompt
     if (evalMode === 'ai-suggest' || evalMode === 'quality') {
@@ -411,6 +413,7 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
           model: 'gpt-5.4-nano',
           messages: [{ role: 'user', content: userContent }],
           temperature: 0,
+          seed: 1234, // กันคะแนน same-file เหวี่ยง — input เดิม → output คงที่ขึ้น (best-effort)
           max_completion_tokens: 3000
         })
         break // สำเร็จ → ออกจาก loop
