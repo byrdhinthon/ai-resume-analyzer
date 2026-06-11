@@ -109,6 +109,31 @@ export default function AnalysisDetailView({
         )}
       </div>
 
+      {/* คำเตือนเมื่อคะแนนรวมถูก cap เพราะขาดหมวดสำคัญ (อธิบายว่าทำไม total ≠ ผลรวมหมวด) */}
+      {analysis.suggestions?.score_cap && (
+        <div style={{
+          background: '#FEF2F2',
+          border: '1.5px solid #DC2626',
+          borderRadius: 'var(--radius-md)',
+          padding: '14px 18px',
+          marginBottom: 20,
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 10
+        }}>
+          <span style={{ fontSize: 20 }}>⚠️</span>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#DC2626', marginBottom: 2 }}>
+              คะแนนรวมถูกจำกัดไว้ที่ {analysis.suggestions.score_cap.cap}
+              {analysis.suggestions.score_cap.applied && ` (คะแนนดิบรวมได้ ${analysis.suggestions.score_cap.raw})`}
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--text-dark)', lineHeight: 1.6 }}>
+              ขาดหมวดสำคัญ: <strong>{(analysis.suggestions.score_cap.missing || []).join(', ')}</strong> — เรซูเม่ที่ขาดหมวดหลักถือว่ายังไม่พร้อมยื่น แม้หมวดอื่นจะทำได้ดี
+            </p>
+          </div>
+        </div>
+      )}
+
       <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-dark)', marginBottom: 14 }}>
         {t('result.categoryScores')}
       </h2>
