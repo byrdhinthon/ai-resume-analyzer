@@ -129,7 +129,8 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
           name: data.extracted_name || file.name,
           career: data.recommended_career || null,
           passed: data.passed,
-          score: data.totalScore   // คะแนนรวม — ใช้แสดงในโหมด ai-suggest
+          score: data.totalScore,  // คะแนนรวม — ใช้แสดงในโหมด ai-suggest
+          missing: data.suggestions?.score_cap?.missing || null  // หมวดที่ขาด → คะแนนโดน cap
         })
         return analysis.id
       } else {
@@ -306,6 +307,13 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
                     <button type="button" onClick={(e) => { e.stopPropagation(); removeFile(index) }} style={{ flex: '0 0 auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-light)', fontSize: 18, padding: 4 }}>×</button>
                   )}
                 </div>
+
+                {/* หมวดที่ขาด → คะแนนถูก cap (บอกชัดว่าขาดส่วนไหน) */}
+                {p.status === 'done' && p.missing?.length > 0 && (
+                  <p style={{ fontSize: 12, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8, marginTop: 8, lineHeight: 1.5 }}>
+                    ⚠️ ขาดหมวด: <strong>{p.missing.join(', ')}</strong> — คะแนนถูกจำกัดไว้ที่ {p.score}/100
+                  </p>
+                )}
 
                 {/* error message ภาษาคน */}
                 {p.status === 'error' && p.message && (
