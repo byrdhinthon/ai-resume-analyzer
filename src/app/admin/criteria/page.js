@@ -63,7 +63,10 @@ export default function AdminCriteriaPage() {
       return
     }
 
-    const { error } = await supabase
+    // .select() คืนแถวที่ "อัปเดตได้จริง" — ถ้า RLS บล็อกสิทธิ์เขียน Supabase จะคืน
+    // error=null แต่ได้ 0 แถว (ไม่ throw). เดิมเช็คแค่ error → เด้ง "สำเร็จ" หลอก
+    // ทั้งที่ไม่ได้เขียน (updated_at ไม่ขยับ). จึงต้องเช็คจำนวนแถวที่อัปเดตด้วย
+    const { data: updated, error } = await supabase
       .from('scoring_criteria')
       .update({
         label: editData.label.trim(),
@@ -72,9 +75,16 @@ export default function AdminCriteriaPage() {
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
+      .select()
 
     if (error) {
       setMessage({ type: 'error', text: t('admin.criteria.saveFailed') + error.message })
+    } else if (!updated || updated.length === 0) {
+      // อัปเดต 0 แถวแต่ไม่มี error = RLS ไม่อนุญาตให้บัญชีนี้เขียน (หรือไม่พบ id)
+      setMessage({
+        type: 'error',
+        text: 'บันทึกไม่สำเร็จ — บัญชีนี้ไม่มีสิทธิ์แก้เกณฑ์ใน DB (ต้องเปิด RLS UPDATE ของ scoring_criteria ให้ professor — ดู migration 010) หรือไม่พบรายการนี้'
+      })
     } else {
       setMessage({ type: 'success', text: t('admin.criteria.saveSuccess') })
       setEditId(null)
