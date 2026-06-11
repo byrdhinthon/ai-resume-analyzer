@@ -46,6 +46,27 @@ async function extractDocxText(buffer) {
   return result.value
 }
 
+// PDF → เรนเดอร์แต่ละหน้าเป็นรูป (PNG data URL) สำหรับส่ง vision
+// แก้ปัญหาเรซูเม่ดีไซน์หลายคอลัมน์ที่ extract เป็น text แล้วลำดับเพี้ยน (vision อ่าน layout ตรงๆ เจอทุกหัวข้อ)
+// สำคัญ: ต้องส่ง "raw data" (สำเนาใหม่ทุกหน้า กัน ArrayBuffer ถูก detach) + canvasImport
+//   เพื่อให้ renderPageAsImage สร้าง document พร้อม @napi-rs/canvas factory เอง
+//   (ถ้าส่ง PDFDocumentProxy จะใช้ stub canvas → throw "@napi-rs/canvas is not available")
+async function renderPdfToImages(buffer, maxPages = 4) {
+  const { getDocumentProxy, renderPageAsImage } = await import('unpdf')
+  const pageCount = (await getDocumentProxy(new Uint8Array(buffer))).numPages || 1
+  const pages = Math.min(pageCount, maxPages)
+  const urls = []
+  for (let i = 1; i <= pages; i++) {
+    const dataUrl = await renderPageAsImage(new Uint8Array(buffer), i, {
+      scale: 2,
+      toDataURL: true,
+      canvasImport: () => import('@napi-rs/canvas')
+    })
+    urls.push(dataUrl)
+  }
+  return urls
+}
+
 export async function POST(request) {
   // hoist ไว้ให้ catch ก้อนนอกเข้าถึงได้ — ใช้ mark failed กัน stuck pending
   let capturedAnalysisId = null
@@ -142,10 +163,19 @@ export async function POST(request) {
     const isImage = lowerName.endsWith('.png') || lowerName.endsWith('.jpg')
       || lowerName.endsWith('.jpeg') || lowerName.endsWith('.webp')
     let resumeText = ''
-    let imageDataUrl = null
+    let imageDataUrls = []   // ไฟล์ที่ส่ง vision (รูป หรือ PDF ที่เรนเดอร์เป็นรูป) — รองรับหลายหน้า
 
     if (lowerName.endsWith('.pdf')) {
-      resumeText = await extractPdfText(buffer)
+      // PDF → เรนเดอร์เป็นรูปส่ง vision (กันเรซูเม่หลายคอลัมน์ extract text แล้วลำดับเพี้ยน อ่านหัวข้อไม่เจอ)
+      // ถ้าเรนเดอร์ไม่ได้ (เช่น canvas ใช้ไม่ได้บน runtime) → fallback แกะ text แบบเดิม (ไม่ทำให้แย่กว่าเดิม)
+      try {
+        imageDataUrls = await renderPdfToImages(buffer)
+      } catch (err) {
+        console.error('PDF render→image failed, fallback to text:', err?.message || err)
+      }
+      if (imageDataUrls.length === 0) {
+        resumeText = await extractPdfText(buffer)
+      }
     } else if (lowerName.endsWith('.docx')) {
       resumeText = await extractDocxText(buffer)
     } else if (isImage) {
@@ -153,12 +183,14 @@ export async function POST(request) {
       const mime = lowerName.endsWith('.png') ? 'image/png'
         : lowerName.endsWith('.webp') ? 'image/webp'
         : 'image/jpeg'
-      imageDataUrl = `data:${mime};base64,${buffer.toString('base64')}`
+      imageDataUrls = [`data:${mime};base64,${buffer.toString('base64')}`]
     } else {
       return await fail('UNSUPPORTED_FILE_TYPE', 400)
     }
 
-    if (!isImage) {
+    // useVision = ส่งรูปเข้าโมเดล (รูปอัปตรง หรือ PDF ที่เรนเดอร์). ถ้าไม่ใช่ = โหมด text ต้องมีข้อความพอ
+    const useVision = imageDataUrls.length > 0
+    if (!useVision) {
       resumeText = String(resumeText || '')
       if (!resumeText || resumeText.trim().length < 10) {
         return await fail('CANNOT_READ_FILE', 400)
@@ -205,7 +237,7 @@ export async function POST(request) {
     // PROMPT BUILDER — มี 2 mode
     // ───────────────────────────────────────────
     // หมายเหตุเรื่อง PDF extraction — เฉพาะไฟล์ text (PDF/DOCX) ไม่ใช่รูป (vision อ่านเองไม่เพี้ยน)
-    const extractionNote = isImage ? '' : `
+    const extractionNote = useVision ? '' : `
 
 ⚠️ หมายเหตุสำคัญเรื่องข้อความ:
 ข้อความด้านบนถูกแกะมาจากไฟล์ PDF/DOCX อัตโนมัติ — ภาษาไทยอาจสะกดเพี้ยน สลับลำดับตัวอักษร สระ/วรรณยุกต์หล่น (เช่น "นักศึกษา" กลายเป็น "กศกึษา") ซึ่งเป็นข้อจำกัดของระบบแกะไฟล์ ไม่ใช่ความผิดของผู้สมัคร
@@ -214,9 +246,9 @@ export async function POST(request) {
 - ✅ ถ้าเจอคำไทยเพี้ยน ให้เดาความหมายที่ตั้งใจแล้วประเมินตามนั้น`
 
     const resumeBlock = `═══════════════════════════════════════════
-RESUME ${isImage ? '(แนบมาเป็นรูปภาพด้านล่าง — อ่านข้อความและข้อมูลทั้งหมดจากรูปภาพ)' : 'TEXT'}
+RESUME ${useVision ? '(แนบมาเป็นรูปภาพด้านล่าง — อ่านข้อความและข้อมูลทั้งหมดจากรูปภาพ ถ้ามีหลายรูป = หลายหน้าของเรซูเม่เดียวกัน)' : 'TEXT'}
 ═══════════════════════════════════════════
-${isImage ? '(ดูเรซูเม่จากรูปภาพที่แนบ)' : resumeText.substring(0, RESUME_TEXT_LIMIT)}${extractionNote}
+${useVision ? '(ดูเรซูเม่จากรูปภาพที่แนบ)' : resumeText.substring(0, RESUME_TEXT_LIMIT)}${extractionNote}
 
 ═══════════════════════════════════════════
 SCORING CATEGORIES (เกณฑ์ของแต่ละหมวดอยู่ใน description)
@@ -396,10 +428,10 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
     }
 
     // ถ้าเป็นรูป → ส่ง prompt + image เข้าโมเดล (multimodal), ถ้าเป็น text → ส่ง prompt เดี่ยว
-    const userContent = imageDataUrl
+    const userContent = useVision
       ? [
           { type: 'text', text: prompt },
-          { type: 'image_url', image_url: { url: imageDataUrl } }
+          ...imageDataUrls.map(url => ({ type: 'image_url', image_url: { url } }))
         ]
       : prompt
 
