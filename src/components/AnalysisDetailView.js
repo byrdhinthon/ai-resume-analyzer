@@ -81,7 +81,7 @@ export default function AnalysisDetailView({
         {/* Pass/Fail badge — เฉพาะ Quality Review Mode */}
         {analysis.evaluation_mode === 'quality' && analysis.pass_threshold !== null && (
           (() => {
-            const passed = analysis.total_score >= analysis.pass_threshold
+            const passed = analysis.total_score >= analysis.pass_threshold && !(analysis.suggestions?.missing_sections?.length)
             return (
               <div style={{
                 display: 'inline-flex',
@@ -109,8 +109,8 @@ export default function AnalysisDetailView({
         )}
       </div>
 
-      {/* คำเตือนเมื่อคะแนนรวมถูก cap เพราะขาดหมวดสำคัญ (อธิบายว่าทำไม total ≠ ผลรวมหมวด) */}
-      {analysis.suggestions?.score_cap && (
+      {/* คำเตือนเมื่อขาดหมวด → ไม่ผ่าน (โชว์ว่าขาดหมวดอะไร — ไม่ cap คะแนนแล้ว) */}
+      {analysis.suggestions?.missing_sections?.length > 0 && (
         <div style={{
           background: '#FEF2F2',
           border: '1.5px solid #DC2626',
@@ -124,11 +124,10 @@ export default function AnalysisDetailView({
           <span style={{ fontSize: 20 }}>⚠️</span>
           <div>
             <p style={{ fontSize: 13, fontWeight: 700, color: '#DC2626', marginBottom: 2 }}>
-              คะแนนรวมถูกจำกัดไว้ที่ {analysis.suggestions.score_cap.cap}
-              {analysis.suggestions.score_cap.applied && ` (คะแนนดิบรวมได้ ${analysis.suggestions.score_cap.raw})`}
+              ขาดหมวด: {analysis.suggestions.missing_sections.join(', ')}
             </p>
             <p style={{ fontSize: 13, color: 'var(--text-dark)', lineHeight: 1.6 }}>
-              ขาดหมวดสำคัญ: <strong>{(analysis.suggestions.score_cap.missing || []).join(', ')}</strong> — เรซูเม่ที่ขาดหมวดหลักถือว่ายังไม่พร้อมยื่น แม้หมวดอื่นจะทำได้ดี
+              เรซูเม่ที่ขาดหมวดหลักถือว่า <strong>ไม่ผ่าน</strong> แม้หมวดอื่นจะทำได้ดี
             </p>
           </div>
         </div>

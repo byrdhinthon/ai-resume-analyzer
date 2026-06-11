@@ -130,7 +130,7 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
           career: data.recommended_career || null,
           passed: data.passed,
           score: data.totalScore,  // คะแนนรวม — ใช้แสดงในโหมด ai-suggest
-          missing: data.suggestions?.score_cap?.missing || null  // หมวดที่ขาด → คะแนนโดน cap
+          missing: data.suggestions?.missing_sections || null  // หมวดที่ขาด → ไม่ผ่าน
         })
         return analysis.id
       } else {
@@ -311,7 +311,7 @@ export default function BatchUploadForm({ jobPosition, onComplete, mode = 'per-p
                 {/* หมวดที่ขาด → คะแนนถูก cap (บอกชัดว่าขาดส่วนไหน) */}
                 {p.status === 'done' && p.missing?.length > 0 && (
                   <p style={{ fontSize: 12, color: '#DC2626', background: '#FEF2F2', padding: '8px 12px', borderRadius: 8, marginTop: 8, lineHeight: 1.5 }}>
-                    ⚠️ ขาดหมวด: <strong>{p.missing.join(', ')}</strong> — คะแนนถูกจำกัดไว้ที่ {p.score}/100
+                    ⚠️ ขาดหมวด: <strong>{p.missing.join(', ')}</strong> — ไม่ผ่าน
                   </p>
                 )}
 
