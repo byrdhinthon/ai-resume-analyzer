@@ -503,22 +503,15 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
       }
     }
 
-    const rawTotalScore = Object.values(result.scores).reduce((a, b) => a + b, 0)
-
-    // CRITICAL-SECTION CAP: หมวดไหนได้ 0 (section ขาด) → เรซูเม่มีรูโหว่ → cap คะแนนรวม ≤50
-    // (HR มุมจริง: ขาดหมวดหลัก เช่น ไม่มีติดต่อ/การศึกษา = ยังไม่พร้อมยื่น ไม่ควรได้ "ดี"/ผ่าน)
-    const SECTION_MISSING_CAP = 50
+    // คะแนนรวม = ผลรวมตรงๆ (ไม่ cap แล้ว — โชว์คะแนนจริง)
+    // แต่ถ้าขาดหมวดใด (score=0) → บังคับ "ไม่ผ่าน" + โชว์ว่าขาดหมวดอะไร
     const labelMap = {}
     ;(criteriaData || []).forEach(c => { labelMap[c.category] = c.label || c.category })
     const missingSections = Object.entries(result.scores)
       .filter(([, v]) => v === 0)
       .map(([k]) => labelMap[k] || k)
-    const totalScore = missingSections.length > 0
-      ? Math.min(rawTotalScore, SECTION_MISSING_CAP)
-      : rawTotalScore
-    const scoreCap = missingSections.length > 0
-      ? { cap: SECTION_MISSING_CAP, raw: rawTotalScore, applied: rawTotalScore > SECTION_MISSING_CAP, missing: missingSections }
-      : null
+    const totalScore = Object.values(result.scores).reduce((a, b) => a + b, 0)
+    const missingList = missingSections.length > 0 ? missingSections : null
 
     // อาชีพ/ตำแหน่งที่ AI เลือก — ใช้ทั้ง quality + ai-suggest (logic เดียวกัน: AI เลือกตำแหน่ง)
     let recommendedCareer = null
@@ -539,7 +532,7 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
     const updatePayload = {
       total_score: totalScore,
       scores: result.scores,
-      suggestions: { ...result.suggestions, summary: result.summary, sections_present: result.sections_present || null, score_cap: scoreCap },
+      suggestions: { ...result.suggestions, summary: result.summary, sections_present: result.sections_present || null, missing_sections: missingList },
       skills_analysis: result.skills_analysis || null,
       status: 'completed',
       extracted_name: extractedName,
@@ -580,11 +573,11 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
       success: true,
       totalScore,
       scores: result.scores,
-      suggestions: { ...result.suggestions, summary: result.summary, sections_present: result.sections_present || null, score_cap: scoreCap },
+      suggestions: { ...result.suggestions, summary: result.summary, sections_present: result.sections_present || null, missing_sections: missingList },
       skills_analysis: result.skills_analysis || null,
       evaluation_mode: evalMode,
       pass_threshold: threshold,
-      passed: threshold !== null ? (totalScore >= threshold) : null,
+      passed: threshold !== null ? (totalScore >= threshold && !missingList) : null,
       recommended_career: recommendedCareer,
       extracted_name: extractedName
     })
