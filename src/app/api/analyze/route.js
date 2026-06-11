@@ -228,6 +228,28 @@ ${criteriaText}`
     //   จุดแข็ง: (ชมก่อน) / ควรเพิ่ม: (bullet •) / ตัวอย่าง: (ก่อน → หลัง)
     const suggestionsSchema = (criteriaData || []).map(c => `"${c.category}": "จุดแข็ง: <ชมจุดดีของหมวดนี้สั้นๆ 1 ประโยค>\\nควรเพิ่ม:\\n• <สิ่งที่ควรปรับ ข้อที่ 1>\\n• <ข้อที่ 2 (ถ้ามี)>\\nตัวอย่าง: <ยกตัวอย่างก่อน → หลัง 1 อัน เช่น 'ทำ dashboard' → 'สร้าง sales dashboard ลดเวลา report 50%'>"`).join(',\n    ')
 
+    // sections_present: ให้ AI audit ว่าแต่ละหมวดมี "หัวข้อ/section" จริงในเรซูเม่ไหม — ทำก่อนให้คะแนน
+    const presenceSchema = (criteriaData || []).map(c => `"${c.category}": <true=มีหัวข้อนี้จริงในเรซูเม่ | false=ไม่มี>`).join(',\n    ')
+
+    // PRESENCE GATE — ประเมินแบบ HR คัดกรองเอกสาร: ไม่มีหัวข้อ = 0 (ใช้ร่วมทั้ง 2 โหมด)
+    const sectionAuditBlock = `
+═══════════════════════════════════════════
+‼️ การตรวจหัวข้อก่อนให้คะแนน (PRESENCE GATE — สำคัญที่สุด ทำก่อนเสมอ)
+═══════════════════════════════════════════
+ประเมินแบบ HR คัดกรองเอกสารจริง — ให้คะแนนตาม "ความครบของหัวข้อที่ปรากฏจริงในเรซูเม่" ไม่ใช่เดาศักยภาพผู้สมัคร
+ไล่ตรวจทีละหมวดว่ามี section ที่เกี่ยวข้อง "ปรากฏเป็นหัวข้อจริง" ไหม แล้วบันทึกลง sections_present (true/false):
+- ข้อมูลติดต่อ: มีช่องทางติดต่อจริงไหม (อีเมล/เบอร์โทร/ลิงก์)
+- ทักษะ: มีหัวข้อ Skills/ทักษะ ที่ลิสต์ทักษะเป็นรายการของตัวเอง — เทคที่แทรกอยู่ในประโยคโปรเจกต์ "ไม่นับ" ว่ามีหัวข้อทักษะ
+- ประสบการณ์: มีหัวข้อประสบการณ์/ฝึกงาน หรือ Projects — Projects นับได้ แต่เพดานคะแนนต่ำกว่างาน/ฝึกงานจริง
+- ระดับการศึกษา: มีหัวข้อ Education ที่ระบุสถาบันจริง (ม.ปลาย/มหาวิทยาลัย + สาขา) — คำว่า "Computer Science Student" หรือตำแหน่งใต้ชื่อ "ไม่นับ" ว่ามีหัวข้อการศึกษา
+- โครงสร้างเรซูเม่: ดูจากจำนวนหัวข้อมาตรฐานที่ครบ (มีแค่ 1-2 หัวข้อ = ต่ำมาก)
+
+‼️ กฎเหล็ก (ห้ามฝ่าฝืนทุกกรณี):
+1. หมวดไหน sections_present=false → scores หมวดนั้น = 0 เด็ดขาด
+2. ห้ามอนุมาน/ชดเชยจากหมวดอื่น จากชื่อ-รูป-ตำแหน่งใต้ชื่อ หรือความรู้ทั่วไป — นับเฉพาะที่เขียนเป็นหัวข้อจริง
+3. ทำตามเงื่อนไข "ขั้น 1 ต้องมีหัวข้อก่อน" ใน description ของแต่ละหมวดเป๊ะ
+4. คะแนน=เข้มงวดตามเอกสาร / suggestion=ยังให้กำลังใจได้`
+
     let prompt
     if (evalMode === 'ai-suggest' || evalMode === 'quality') {
       // AI เลือกตำแหน่งที่เหมาะกับ candidate เอง แล้วให้คะแนนตามตำแหน่งนั้น
@@ -261,6 +283,7 @@ GLOBAL CONTEXT
 Tone ของ suggestion: ให้กำลังใจ + แนะนำขั้นต่อไป
 
 ${resumeBlock}
+${sectionAuditBlock}
 
 ═══════════════════════════════════════════
 OUTPUT FORMAT
@@ -276,6 +299,9 @@ Respond ONLY with valid JSON:
     "candidate_missing": ["ทักษะใน expected ที่ไม่พบในเรซูเม่"],
     "candidate_extras_relevant": ["ทักษะพิเศษที่เกี่ยวข้องแม้ไม่อยู่ใน expected list"],
     "evidence_quality": "<none|mentioned_only|with_examples|with_projects>"
+  },
+  "sections_present": {
+    ${presenceSchema}
   },
   "scores": {
     ${scoresSchema}
@@ -336,6 +362,7 @@ GLOBAL SCORING CONTEXT
 - ถ้า description ของหมวดไม่ระบุ tone ของ suggestion ให้ default = ให้กำลังใจ + แนะนำขั้นต่อไป (ไม่ใช่ตำหนิ)
 
 ${resumeBlock}
+${sectionAuditBlock}
 
 ═══════════════════════════════════════════
 OUTPUT FORMAT
@@ -351,6 +378,9 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
     "irrelevant_skills_in_resume": ["ทักษะในเรซูเม่ที่ไม่เกี่ยวกับตำแหน่ง"],
     "match_ratio": <0.0-1.0 = candidate_has.length / position_expected_skills.length>,
     "evidence_quality": "<none|mentioned_only|with_examples|with_projects>"
+  },
+  "sections_present": {
+    ${presenceSchema}
   },
   "scores": {
     ${scoresSchema}
@@ -428,6 +458,16 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
       result.scores[key] = Math.max(0, Math.min(Number(value) || 0, maxAllowed))
     }
 
+    // PRESENCE GATE (server-side): หมวดที่ AI ตรวจว่าไม่มีหัวข้อจริง → บังคับ 0
+    // กัน AI ใจอ่อนเผลอให้คะแนนหมวดที่ไม่มี section (เช่นเดา "การศึกษา" จากตำแหน่งใต้ชื่อ)
+    if (result.sections_present && typeof result.sections_present === 'object') {
+      for (const [key, present] of Object.entries(result.sections_present)) {
+        if (present === false && key in result.scores) {
+          result.scores[key] = 0
+        }
+      }
+    }
+
     const totalScore = Object.values(result.scores).reduce((a, b) => a + b, 0)
 
     // อาชีพ/ตำแหน่งที่ AI เลือก — ใช้ทั้ง quality + ai-suggest (logic เดียวกัน: AI เลือกตำแหน่ง)
@@ -449,7 +489,7 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
     const updatePayload = {
       total_score: totalScore,
       scores: result.scores,
-      suggestions: { ...result.suggestions, summary: result.summary },
+      suggestions: { ...result.suggestions, summary: result.summary, sections_present: result.sections_present || null },
       skills_analysis: result.skills_analysis || null,
       status: 'completed',
       extracted_name: extractedName,
@@ -490,7 +530,7 @@ Respond ONLY with valid JSON. Analyze skills FIRST, then score:
       success: true,
       totalScore,
       scores: result.scores,
-      suggestions: { ...result.suggestions, summary: result.summary },
+      suggestions: { ...result.suggestions, summary: result.summary, sections_present: result.sections_present || null },
       skills_analysis: result.skills_analysis || null,
       evaluation_mode: evalMode,
       pass_threshold: threshold,
